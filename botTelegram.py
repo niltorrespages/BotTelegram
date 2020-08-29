@@ -12,9 +12,9 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
-WEATHERAPI = environ('WEATHERAPI')
-BOTTOKEN = environ('BOTTOKEN')
-MYTLGID = environ('MYTLGID')
+WEATHERAPI = environ['WEATHERAPI'] 
+BOTTOKEN = environ['BOTTOKEN'] 
+MYTLGID = environ['MYTLGID'] 
 
 
 class Station(object):
