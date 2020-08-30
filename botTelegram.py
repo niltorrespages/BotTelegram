@@ -14,7 +14,8 @@ load_dotenv()
 
 WEATHERAPI = environ['WEATHERAPI'] 
 BOTTOKEN = environ['BOTTOKEN'] 
-MYTLGID = environ['MYTLGID'] 
+MYTLGID = int(environ['MYTLGID'])
+CANGAUDIR =(float(environ['HOMELAT']), float(environ['HOMELONG']))
 
 
 class Station(object):
@@ -28,6 +29,34 @@ class Station(object):
         self.distance = dist
         self.status = False
 
+def fetchBicing(location):
+    myLocation = location
+    si = json.loads(requests.get('https://api.bsmsa.eu/ext/api/bsm/gbfs/v2/en/station_information').content)
+    ss = json.loads(requests.get('https://api.bsmsa.eu/ext/api/bsm/gbfs/v2/en/station_status').content)['data'][
+        'stations']
+    id = 0
+    stations = []
+    for station in si['data']['stations']:
+        stLocation = (station['lat'], station['lon'])
+        dist = geodesic(myLocation, stLocation).meters
+        s = Station(station['name'], station['lat'], station['lon'], dist)
+        s.status = ss[id]['status']
+        s.mech = int(ss[id]['num_bikes_available_types']['mechanical'])
+        s.elec = int(ss[id]['num_bikes_available_types']['ebike'])
+        if s.status == 'IN_SERVICE' and s.mech + s.elec > 0:
+            stations.append(s)
+        id += 1
+    stations.sort(key=lambda x: x.distance)
+    message =[]
+    for i in range(0, 3):
+        message.append(f'{stations[i].name} amb:\nBicis elèctriques: {stations[i].elec}\nBicis mecàniques: ' \
+                   f'{stations[i].mech}\nDistància: {int(stations[i].distance)} metres\n')
+
+        # message = context.bot.sendMessage(chat_id=update.message.chat_id,
+        #                                   text=f'{stations[i].name} amb:\nBicis elèctriques:'
+        #                                        f' {stations[i].elec}\nBicis mecàniques: '
+        #                                        f'{stations[i].mech}\nDistància: {stations[i].distance}')
+    return message
 
 # TODO: Implement weather other than sunny or cloudy for everyday
 def weather(update, context):
@@ -42,6 +71,19 @@ def getPublicIP(update, context):
     if update.message.from_user.id == MYTLGID:
         message = context.bot.sendMessage(chat_id=update.message.chat_id, text=get('https://api.ipify.org').text)
 
+def myBicing(update, context):
+    print('hi')
+    print(update.message.from_user.id)
+    if update.message.from_user.id == MYTLGID:
+        print('hello')
+        try:
+            message = fetchBicing(CANGAUDIR)
+            for m in message:
+                context.bot.sendMessage(chat_id=update.message.chat_id, text=m)
+
+        except Exception as e:
+            context.bot.sendMessage(chat_id=update.message.chat_id, text=f'Error al processar: {e}')
+            print(e)
 
 
 def specialMessage(update, context):
@@ -53,30 +95,14 @@ def specialMessage(update, context):
         myLocation = (update.message['location']['latitude'], update.message['location']['longitude'])
 
         try:
-            si = json.loads(requests.get('https://api.bsmsa.eu/ext/api/bsm/gbfs/v2/en/station_information').content)
-            ss = json.loads(requests.get('https://api.bsmsa.eu/ext/api/bsm/gbfs/v2/en/station_status').content)['data']['stations']
-            id = 0
-            stations = []
-            for station in si['data']['stations']:
-                stLocation = (station['lat'], station['lon'])
-                dist = geodesic(myLocation, stLocation)
-                s = Station(station['name'],station['lat'], station['lon'],dist)
-                s.status = ss[id]['status']
-                s.mech = int(ss[id]['num_bikes_available_types']['mechanical'])
-                s.elec = int(ss[id]['num_bikes_available_types']['ebike'])
-                if s.status == 'IN_SERVICE' and s.mech + s.elec > 0:
-                    stations.append(s)
-                id += 1
-            stations.sort(key=lambda x: x.distance)
+            message = fetchBicing(myLocation)
 
-            for i in range(0, 3):
-                message = context.bot.sendMessage(chat_id=update.message.chat_id,
-                                                  text=f'{stations[i].name} amb:\nBicis elèctriques:'
-                                                       f' {stations[i].elec}\nBicis mecàniques: '
-                                                       f'{stations[i].mech}\nDistància: {stations[i].distance}')
+            for m in message:
+                context.bot.sendMessage(chat_id=update.message.chat_id, text=m)
+
         except Exception as e:
             if update.message.from_user.id == MYTLGID:
-                message = context.bot.sendMessage(chat_id=update.message.chat_id, text=f'Error al processar: {e}')
+                context.bot.sendMessage(chat_id=update.message.chat_id, text=f'Error al processar: {e}')
             print(e)
 
 
@@ -88,6 +114,7 @@ dp = updater.dispatcher
 logging.basicConfig(format='%(asctime)s - %(name)s - %(levelname)s - %(message)s', level=logging.INFO)
 dp.add_handler(CommandHandler('weather', weather))
 dp.add_handler(CommandHandler('ip', getPublicIP))
+dp.add_handler(CommandHandler('bicing', myBicing))
 dp.add_handler(MessageHandler(Filters.all, specialMessage))
 
 updater.start_polling()
