@@ -4,7 +4,8 @@ import logging
 import json
 from telegram.ext import Updater, MessageHandler, Filters, CommandHandler
 from requests import get
-from datetime import datetime
+import time
+import datetime
 import requests
 from geopy.distance import geodesic
 from os import environ
@@ -16,6 +17,8 @@ WEATHERAPI = environ['WEATHERAPI']
 BOTTOKEN = environ['BOTTOKEN'] 
 MYTLGID = int(environ['MYTLGID'])
 CANGAUDIR =(float(environ['HOMELAT']), float(environ['HOMELONG']))
+
+goodWeather = ['Clear', 'Clouds']
 
 
 class Station(object):
@@ -52,19 +55,55 @@ def fetchBicing(location):
         message.append(f'{stations[i].name} amb:\nBicis elèctriques: {stations[i].elec}\nBicis mecàniques: ' \
                    f'{stations[i].mech}\nDistància: {int(stations[i].distance)} metres\n')
 
-        # message = context.bot.sendMessage(chat_id=update.message.chat_id,
-        #                                   text=f'{stations[i].name} amb:\nBicis elèctriques:'
-        #                                        f' {stations[i].elec}\nBicis mecàniques: '
-        #                                        f'{stations[i].mech}\nDistància: {stations[i].distance}')
     return message
 
-# TODO: Implement weather other than sunny or cloudy for everyday
-def weather(update, context):
-    temps = json.loads(get(WEATHERAPI).text)
-    dia = temps["hourly"]["dt"]
-    print(dia)
-    print(datetime.utcfromtimestamp(dia).strftime('%Y-%m-%d %H:%M:%S'))
-    message = context.bot.sendMessage(chat_id=update.message.chat_id, text='sada')
+def removeDailyWeather(update, context):
+    j = jobQ.get_jobs_by_name(update.message.chat_id)
+    if j:
+        j.stop()
+        message = context.bot.sendMessage(chat_id=update.message.chat_id,
+                                          text='You are no longer subscribed to notifications')
+    else:
+        message = context.bot.sendMessage(chat_id=update.message.chat_id, text='You are not subscribed to notifications')
+
+def setDailyWeather(update, context):
+    if not jobQ.get_jobs_by_name(update.message.chat_id):
+        message = context.bot.sendMessage(chat_id=update.message.chat_id,
+                                          text='Starting daily weather notifications for Barcelona')
+        jobQ.run_daily(runDailyWeather, datetime.time(7, 30, 00, 000000), name=update.message.chat_id, context=update.message.chat_id)
+
+    else:
+        message = context.bot.sendMessage(chat_id=update.message.chat_id, text='Already subscribed to notifications')
+
+
+def weather():
+    temps = json.loads(requests.get(WEATHERAPI).text)
+    state = ''
+    start = 7
+    message = ''
+    for hora in temps['hourly'][:14]:
+
+        for w in hora['weather']:
+            if w['description'] != state:
+                if state is '':
+                    start = time.localtime(hora['dt']).tm_hour
+                    state = w['description']
+
+                else:
+                    end = time.localtime(hora['dt']).tm_hour
+                    if (w['main'] not in goodWeather):
+                        message += f'En les pròximes hores, des de les {start}:00 fins les {end}:00 tindrem un/a {w["description"]}\n'
+                    state = w['description']
+                    start = end
+
+    return message if message else 'Error'
+
+
+def runWeather(update, context):
+    message = context.bot.sendMessage(chat_id=update.message.chat_id, text=weather())
+
+def runDailyWeather(context):
+    message = context.bot.sendMessage(chat_id=context.job.context, text=weather())
 
 
 def getPublicIP(update, context):
@@ -72,10 +111,8 @@ def getPublicIP(update, context):
         message = context.bot.sendMessage(chat_id=update.message.chat_id, text=get('https://api.ipify.org').text)
 
 def myBicing(update, context):
-    print('hi')
-    print(update.message.from_user.id)
+
     if update.message.from_user.id == MYTLGID:
-        print('hello')
         try:
             message = fetchBicing(CANGAUDIR)
             for m in message:
@@ -109,12 +146,15 @@ def specialMessage(update, context):
 
 """Run the bot."""
 updater = Updater(token=BOTTOKEN, use_context=True)
+jobQ = updater.job_queue
 
 dp = updater.dispatcher
 logging.basicConfig(format='%(asctime)s - %(name)s - %(levelname)s - %(message)s', level=logging.INFO)
-dp.add_handler(CommandHandler('weather', weather))
+dp.add_handler(CommandHandler('weather', runWeather))
 dp.add_handler(CommandHandler('ip', getPublicIP))
 dp.add_handler(CommandHandler('bicing', myBicing))
+dp.add_handler(CommandHandler('startWeather', setDailyWeather, pass_job_queue=True))
+dp.add_handler(CommandHandler('stopWeather', removeDailyWeather, pass_job_queue=True))
 dp.add_handler(MessageHandler(Filters.all, specialMessage))
 
 updater.start_polling()
