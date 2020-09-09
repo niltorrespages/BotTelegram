@@ -58,22 +58,23 @@ def fetchBicing(location):
     return message
 
 def removeDailyWeather(update, context):
+
     j = jobQ.get_jobs_by_name(update.message.chat_id)
     if j:
-        j.stop()
+        j[0].schedule_removal()
         message = context.bot.sendMessage(chat_id=update.message.chat_id,
-                                          text='You are no longer subscribed to notifications')
+                                          text='Lo siento, no le volvere a molestar mi amo')
     else:
-        message = context.bot.sendMessage(chat_id=update.message.chat_id, text='You are not subscribed to notifications')
+        message = context.bot.sendMessage(chat_id=update.message.chat_id, text='No le iba a avisar puto')
 
 def setDailyWeather(update, context):
     if not jobQ.get_jobs_by_name(update.message.chat_id):
         message = context.bot.sendMessage(chat_id=update.message.chat_id,
-                                          text='Starting daily weather notifications for Barcelona')
+                                          text='Si mi amo, voy a mirar al cielo cada dia')
         jobQ.run_daily(runDailyWeather, datetime.time(6, 30, 00, 000000), name=update.message.chat_id, context=update.message.chat_id)
 
     else:
-        message = context.bot.sendMessage(chat_id=update.message.chat_id, text='Already subscribed to notifications')
+        message = context.bot.sendMessage(chat_id=update.message.chat_id, text='Ya le estaba avisando puto')
 
 
 def weather():
