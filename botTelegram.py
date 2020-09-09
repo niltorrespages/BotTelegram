@@ -70,7 +70,7 @@ def setDailyWeather(update, context):
     if not jobQ.get_jobs_by_name(update.message.chat_id):
         message = context.bot.sendMessage(chat_id=update.message.chat_id,
                                           text='Starting daily weather notifications for Barcelona')
-        jobQ.run_daily(runDailyWeather, datetime.time(7, 30, 00, 000000), name=update.message.chat_id, context=update.message.chat_id)
+        jobQ.run_daily(runDailyWeather, datetime.time(6, 30, 00, 000000), name=update.message.chat_id, context=update.message.chat_id)
 
     else:
         message = context.bot.sendMessage(chat_id=update.message.chat_id, text='Already subscribed to notifications')
