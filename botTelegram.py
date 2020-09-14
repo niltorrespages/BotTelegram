@@ -97,7 +97,7 @@ def weather():
                     state = w['description']
                     start = end
 
-    return message if message else 'Error'
+    return message if message else 'No es preveu mal temps'
 
 
 def runWeather(update, context):
