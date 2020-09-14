@@ -129,7 +129,7 @@ def specialMessage(update, context):
     # if update.message.new_chat_photo:
     #     message = context.bot.sendPoll(chat_id=update.message.chat_id, question="FoC", options=['F', 'C'], is_anonymous=False)
 
-    if update.message.chat == 'group':
+    if update.message.chat.type in ['supergroup', 'group']:
         if 'engrescat' in update.message.text.lower():
             message = context.bot.sendAnimation(chat_id=update.message.chat_id, animation='https://giphy.com/gifs/U5UieHLUiMpisOzAe5')
     if update.message.location:
