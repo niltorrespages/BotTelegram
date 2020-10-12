@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 import logging
 import json
-from telegram.ext import Updater, MessageHandler, Filters, CommandHandler
+from telegram.ext import Updater, MessageHandler, Filters, CommandHandler, ConversationHandler
 from requests import get
 import time
 import datetime
@@ -17,6 +17,9 @@ WEATHERAPI = environ['WEATHERAPI']
 BOTTOKEN = environ['BOTTOKEN'] 
 MYTLGID = int(environ['MYTLGID'])
 CANGAUDIR =(float(environ['HOMELAT']), float(environ['HOMELONG']))
+WEB = environ['WEB']
+INTRANET = environ['INTRANET']
+ENTRADES = environ['ENTRADES']
 
 goodWeather = ['Clear', 'Clouds']
 
@@ -124,6 +127,29 @@ def myBicing(update, context):
             print(e)
 
 
+def serverCheck(context):
+
+    try:
+        web = requests.get(WEB).status_code
+        if web != 200:
+            updater.bot.sendMessage(chat_id=MYTLGID, text=f'Sembla que la web esta caiguda')
+    except:
+        updater.bot.sendMessage(chat_id=MYTLGID, text=f'Sembla que la web esta caiguda')
+    try:
+        entrades = requests.get(ENTRADES).status_code
+        if entrades != 200:
+            updater.bot.sendMessage(chat_id=MYTLGID, text=f'Sembla que les entrades esta caigudes')
+    except:
+        updater.bot.sendMessage(chat_id=MYTLGID, text=f'Sembla que la entrades esta caiguda')
+    try:
+        intranet = requests.get(INTRANET).status_code
+        if intranet != 200:
+            updater.bot.sendMessage(chat_id=MYTLGID, text=f'Sembla que la intranet esta caiguda')
+    except:
+        updater.bot.sendMessage(chat_id=MYTLGID, text=f'Sembla que la intranet esta caiguda')
+
+
+
 def specialMessage(update, context):
 
     # if update.message.new_chat_photo:
@@ -161,6 +187,7 @@ dp.add_handler(CommandHandler('startWeather', setDailyWeather, pass_job_queue=Tr
 dp.add_handler(CommandHandler('stopWeather', removeDailyWeather, pass_job_queue=True))
 dp.add_handler(MessageHandler(Filters.all, specialMessage))
 
+jobQ.run_repeating(serverCheck, 300)
 updater.start_polling()
 updater.idle()
 
