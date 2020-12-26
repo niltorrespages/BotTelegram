@@ -21,6 +21,9 @@ WEB = environ['WEB']
 INTRANET = environ['INTRANET']
 ENTRADES = environ['ENTRADES']
 
+BINANCE = "https://api.binance.com"
+
+
 goodWeather = ['Clear', 'Clouds']
 
 
@@ -173,8 +176,30 @@ def specialMessage(update, context):
             print(e)
 
 
+'''Binance api messages'''
+
+def truncate(n, decimals=0):
+    multiplier = 10 ** decimals
+    return int(n * multiplier) / multiplier
+
+
+def bitcoinPrice(context):
+    global BTCUSD
+    dollars = float(json.loads(requests.get(f'{BINANCE}/api/v3/ticker/price?symbol=BTCUSDT').text)['price'])
+    eur = float(json.loads(requests.get(f'{BINANCE}/api/v3/ticker/price?symbol=BTCEUR').text)['price'])
+    if BTCUSD == 0:
+        updater.bot.sendMessage(chat_id=MYTLGID, text=f'Bot just booted up, price monitoring at: {dollars}$ ({eur}€)')
+        BTCUSD = truncate(dollars, -2)
+    elif truncate(dollars -2) > BTCUSD:
+        updater.bot.sendMessage(chat_id=MYTLGID, text=f'BTC Up! {dollars}$ ({eur}€)')
+        BTCUSD = truncate(dollars, -2)
+    elif truncate(dollars -2) < BTCUSD:
+        updater.bot.sendMessage(chat_id=MYTLGID, text=f'BTC Down! {dollars}$ ({eur}€)')
+        BTCUSD = truncate(dollars, -2)
+
 
 """Run the bot."""
+BTCUSD = 0
 updater = Updater(token=BOTTOKEN, use_context=True)
 jobQ = updater.job_queue
 
@@ -188,6 +213,7 @@ dp.add_handler(CommandHandler('stopWeather', removeDailyWeather, pass_job_queue=
 dp.add_handler(MessageHandler(Filters.all, specialMessage))
 
 jobQ.run_repeating(serverCheck, 300)
+jobQ.run_repeating(bitcoinPrice, 300)
 updater.start_polling()
 updater.idle()
 
