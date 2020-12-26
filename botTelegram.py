@@ -183,8 +183,12 @@ def truncate(n, decimals=0):
     multiplier = 10 ** decimals
     return int(n * multiplier) / multiplier
 
+def btcPrice(update, context):
+    dollars = float(json.loads(requests.get(f'{BINANCE}/api/v3/ticker/price?symbol=BTCUSDT').text)['price'])
+    eur = float(json.loads(requests.get(f'{BINANCE}/api/v3/ticker/price?symbol=BTCEUR').text)['price'])
+    context.bot.sendMessage(chat_id=update.message.chat_id, text=f'Preu del bitcoin:  {dollars}$ ({eur}€)')
 
-def bitcoinPrice(context):
+def bitcoinWatch(context):
     global BTCUSD
     dollars = float(json.loads(requests.get(f'{BINANCE}/api/v3/ticker/price?symbol=BTCUSDT').text)['price'])
     eur = float(json.loads(requests.get(f'{BINANCE}/api/v3/ticker/price?symbol=BTCEUR').text)['price'])
@@ -217,13 +221,14 @@ logging.basicConfig(format='%(asctime)s - %(name)s - %(levelname)s - %(message)s
 dp.add_handler(CommandHandler('weather', runWeather))
 dp.add_handler(CommandHandler('ip', getPublicIP))
 dp.add_handler(CommandHandler('bicing', myBicing))
+dp.add_handler(CommandHandler('btc', btcPrice))
 dp.add_handler(CommandHandler('startWeather', setDailyWeather, pass_job_queue=True))
 dp.add_handler(CommandHandler('stopWeather', removeDailyWeather, pass_job_queue=True))
 dp.add_handler(MessageHandler(Filters.all, specialMessage))
 
 jobQ.run_repeating(serverCheck, 300)
-jobQ.run_once(bitcoinPrice,0)
-jobQ.run_repeating(bitcoinPrice, 300)
+jobQ.run_once(bitcoinWatch, 0)
+jobQ.run_repeating(bitcoinWatch, 300)
 updater.start_polling()
 updater.idle()
 
