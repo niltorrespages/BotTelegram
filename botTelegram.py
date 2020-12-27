@@ -136,21 +136,21 @@ def serverCheck(context):
     try:
         web = requests.get(WEB).status_code
         if web != 200:
-            updater.bot.sendMessage(chat_id=MYTLGID, text=f'Sembla que la web esta caiguda')
+            updater.bot.sendMessage(chat_id=MYTLGID, text=f'{emoji.emojize(":computer::computer:", use_aliases=True)} Sembla que la web esta caiguda')
     except:
-        updater.bot.sendMessage(chat_id=MYTLGID, text=f'Sembla que la web esta caiguda')
+        updater.bot.sendMessage(chat_id=MYTLGID, text=f'{emoji.emojize(":computer::computer:", use_aliases=True)} Sembla que la web esta caiguda')
     try:
         entrades = requests.get(ENTRADES).status_code
         if entrades != 200:
-            updater.bot.sendMessage(chat_id=MYTLGID, text=f'Sembla que les entrades esta caigudes')
+            updater.bot.sendMessage(chat_id=MYTLGID, text=f'{emoji.emojize(":computer::computer:", use_aliases=True)} Sembla que les entrades esta caigudes')
     except:
-        updater.bot.sendMessage(chat_id=MYTLGID, text=f'Sembla que la entrades esta caiguda')
+        updater.bot.sendMessage(chat_id=MYTLGID, text=f'{emoji.emojize(":computer::computer:", use_aliases=True)} Sembla que la entrades esta caiguda')
     try:
         intranet = requests.get(INTRANET).status_code
         if intranet != 200:
-            updater.bot.sendMessage(chat_id=MYTLGID, text=f'Sembla que la intranet esta caiguda')
+            updater.bot.sendMessage(chat_id=MYTLGID, text=f'{emoji.emojize(":computer::computer:", use_aliases=True)} Sembla que la intranet esta caiguda')
     except:
-        updater.bot.sendMessage(chat_id=MYTLGID, text=f'Sembla que la intranet esta caiguda')
+        updater.bot.sendMessage(chat_id=MYTLGID, text=f'{emoji.emojize(":computer::computer:", use_aliases=True)} Sembla que la intranet esta caiguda')
 
 
 
@@ -198,13 +198,13 @@ def bitcoinWatch(context):
         print(f'dollars:{dollars}    '
               f'BTCUSD: {BTCUSD}')
     elif truncate(dollars, -3) > BTCUSD:
-        updater.bot.sendMessage(chat_id=MYTLGID, text=f'{emoji.emojize(":arrow_up::arrow_up:", use_aliases=True)} '
+        updater.bot.sendMessage(chat_id=MYTLGID, text=f'{emoji.emojize(":chart_with_upwards_trend:", use_aliases=True)} '
                                                       f'BTC Up! {dollars}$ ({eur}€)')
         BTCUSD = truncate(dollars, -3)
         print(f'dollars:{dollars}    '
               f'BTCUSD: {BTCUSD}')
     elif truncate(dollars, -3) < BTCUSD:
-        updater.bot.sendMessage(chat_id=MYTLGID, text=f'{emoji.emojize(":arrow_down::arrow_down:", use_aliases=True)} '
+        updater.bot.sendMessage(chat_id=MYTLGID, text=f'{emoji.emojize(":chart_with_downwards_trend:", use_aliases=True)} '
                                                       f'BTC Down! {dollars}$ ({eur}€)')
         BTCUSD = truncate(dollars, -3)
         print(f'dollars:{dollars}    '
