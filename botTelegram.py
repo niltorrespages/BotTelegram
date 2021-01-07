@@ -193,7 +193,7 @@ def ethPrice(update, context):
     eur = float(json.loads(requests.get(f'{BINANCE}/api/v3/ticker/price?symbol=ETHEUR').text)['price'])
     context.bot.sendMessage(chat_id=update.message.chat_id, text=f'Preu del ETH:  {dollars}$ ({eur}€)')
 
-def bitcoinWatch():
+def bitcoinWatch(context=None):
     global BTCUSD
     dollars = float(json.loads(requests.get(f'{BINANCE}/api/v3/ticker/price?symbol=BTCBUSD').text)['price'])
     eur = float(json.loads(requests.get(f'{BINANCE}/api/v3/ticker/price?symbol=BTCEUR').text)['price'])
@@ -212,7 +212,7 @@ def bitcoinWatch():
         BTCUSD = truncate(dollars, -3)
 
 
-def ethWatch():
+def ethWatch(context=None):
     global ETHUSD
     dollars = float(json.loads(requests.get(f'{BINANCE}/api/v3/ticker/price?symbol=ETHBUSD').text)['price'])
 
