@@ -184,35 +184,56 @@ def truncate(n, decimals=0):
     return int(n * multiplier) / multiplier
 
 def btcPrice(update, context):
-    dollars = float(json.loads(requests.get(f'{BINANCE}/api/v3/ticker/price?symbol=BTCUSDT').text)['price'])
+    dollars = float(json.loads(requests.get(f'{BINANCE}/api/v3/ticker/price?symbol=BTCBUSD').text)['price'])
     eur = float(json.loads(requests.get(f'{BINANCE}/api/v3/ticker/price?symbol=BTCEUR').text)['price'])
     context.bot.sendMessage(chat_id=update.message.chat_id, text=f'Preu del bitcoin:  {dollars}$ ({eur}€)')
 
+def ethPrice(update, context):
+    dollars = float(json.loads(requests.get(f'{BINANCE}/api/v3/ticker/price?symbol=ETHBUSD').text)['price'])
+    eur = float(json.loads(requests.get(f'{BINANCE}/api/v3/ticker/price?symbol=ETHEUR').text)['price'])
+    context.bot.sendMessage(chat_id=update.message.chat_id, text=f'Preu del ETH:  {dollars}$ ({eur}€)')
+
 def bitcoinWatch(context):
     global BTCUSD
-    dollars = float(json.loads(requests.get(f'{BINANCE}/api/v3/ticker/price?symbol=BTCUSDT').text)['price'])
+    dollars = float(json.loads(requests.get(f'{BINANCE}/api/v3/ticker/price?symbol=BTCBUSD').text)['price'])
     eur = float(json.loads(requests.get(f'{BINANCE}/api/v3/ticker/price?symbol=BTCEUR').text)['price'])
     if BTCUSD == 0:
         updater.bot.sendMessage(chat_id=MYTLGID, text=f'Bot just booted up, price monitoring at: {dollars}$ ({eur}€)',)
         BTCUSD = truncate(dollars, -3)
-        print(f'dollars:{dollars}    '
-              f'BTCUSD: {BTCUSD}')
+
     elif truncate(dollars, -3) > BTCUSD:
         updater.bot.sendMessage(chat_id=MYTLGID, text=f'{emoji.emojize(":chart_with_upwards_trend:", use_aliases=True)} '
-                                                      f'BTC Up! {dollars}$ ({eur}€)')
+                                                      f'₿ BTC Up! {dollars}$ ({eur}€)')
         BTCUSD = truncate(dollars, -3)
-        print(f'dollars:{dollars}    '
-              f'BTCUSD: {BTCUSD}')
+
     elif truncate(dollars, -3) < BTCUSD:
         updater.bot.sendMessage(chat_id=MYTLGID, text=f'{emoji.emojize(":chart_with_downwards_trend:", use_aliases=True)} '
-                                                      f'BTC Down! {dollars}$ ({eur}€)')
+                                                      f'₿ BTC Down! {dollars}$ ({eur}€)')
         BTCUSD = truncate(dollars, -3)
-        print(f'dollars:{dollars}    '
-              f'BTCUSD: {BTCUSD}')
+
+
+def ethWatch(context):
+    global ETHUSD
+    dollars = float(json.loads(requests.get(f'{BINANCE}/api/v3/ticker/price?symbol=ETHBUSD').text)['price'])
+
+    if ETHUSD == 0:
+        updater.bot.sendMessage(chat_id=MYTLGID, text=f'Bot just booted up, price monitoring ETH at: {dollars}$')
+        ETHUSD = truncate(dollars, -2)
+
+    elif truncate(dollars, -2) > ETHUSD:
+        updater.bot.sendMessage(chat_id=MYTLGID, text=f'{emoji.emojize(":chart_with_upwards_trend:", use_aliases=True)} '
+                                                      f'𝅉 ETH Up! {dollars}$')
+        ETHUSD = truncate(dollars, -2)
+
+    elif truncate(dollars, -3) < ETHUSD:
+        updater.bot.sendMessage(chat_id=MYTLGID, text=f'{emoji.emojize(":chart_with_downwards_trend:", use_aliases=True)} '
+                                                      f'𝅏 BTC Down! {dollars}$')
+        ETHUSD = truncate(dollars, -3)
 
 
 """Run the bot."""
 BTCUSD = 0
+ETHUSD = 0
 updater = Updater(token=BOTTOKEN, use_context=True)
 jobQ = updater.job_queue
 
@@ -222,13 +243,14 @@ dp.add_handler(CommandHandler('weather', runWeather))
 dp.add_handler(CommandHandler('ip', getPublicIP))
 dp.add_handler(CommandHandler('bicing', myBicing))
 dp.add_handler(CommandHandler('btc', btcPrice))
+dp.add_handler(CommandHandler('eth', ethPrice))
 dp.add_handler(CommandHandler('startWeather', setDailyWeather, pass_job_queue=True))
 dp.add_handler(CommandHandler('stopWeather', removeDailyWeather, pass_job_queue=True))
 dp.add_handler(MessageHandler(Filters.all, specialMessage))
 
 jobQ.run_repeating(serverCheck, 300)
-jobQ.run_once(bitcoinWatch, 0)
 jobQ.run_repeating(bitcoinWatch, 300)
+jobQ.run_repeating(ethWatch, 300)
 updater.start_polling()
 updater.idle()
 
