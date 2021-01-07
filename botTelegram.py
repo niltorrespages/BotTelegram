@@ -202,13 +202,11 @@ def bitcoinWatch(context=None):
         BTCUSD = truncate(dollars, -3)
 
     elif truncate(dollars, -3) > BTCUSD:
-        updater.bot.sendMessage(chat_id=MYTLGID, text=f'{emoji.emojize(":chart_with_upwards_trend:", use_aliases=True)} '
-                                                      f'₿ BTC Up! {dollars}$ ({eur}€)')
+        updater.bot.sendMessage(chat_id=MYTLGID, text=f'₿ BTC Up! {dollars}$ ({eur}€)')
         BTCUSD = truncate(dollars, -3)
 
     elif truncate(dollars, -3) < BTCUSD:
-        updater.bot.sendMessage(chat_id=MYTLGID, text=f'{emoji.emojize(":chart_with_downwards_trend:", use_aliases=True)} '
-                                                      f'₿ BTC Down! {dollars}$ ({eur}€)')
+        updater.bot.sendMessage(chat_id=MYTLGID, text=f'₿ BTC Down! {dollars}$ ({eur}€)')
         BTCUSD = truncate(dollars, -3)
 
 
@@ -221,14 +219,12 @@ def ethWatch(context=None):
         ETHUSD = truncate(dollars, -2)
 
     elif truncate(dollars, -2) > ETHUSD:
-        updater.bot.sendMessage(chat_id=MYTLGID, text=f'{emoji.emojize(":chart_with_upwards_trend:", use_aliases=True)} '
-                                                      f'𝅉 ETH Up! {dollars}$')
+        updater.bot.sendMessage(chat_id=MYTLGID, text=f'𝅉 ETH Up! {dollars}$')
         ETHUSD = truncate(dollars, -2)
 
     elif truncate(dollars, -3) < ETHUSD:
-        updater.bot.sendMessage(chat_id=MYTLGID, text=f'{emoji.emojize(":chart_with_downwards_trend:", use_aliases=True)} '
-                                                      f'𝅏 BTC Down! {dollars}$')
-        ETHUSD = truncate(dollars, -3)
+        updater.bot.sendMessage(chat_id=MYTLGID, text=f'𝅏 ETH Down! {dollars}$')
+        ETHUSD = truncate(dollars, -2)
 
 
 """Run the bot."""
