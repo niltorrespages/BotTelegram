@@ -193,7 +193,7 @@ def ethPrice(update, context):
     eur = float(json.loads(requests.get(f'{BINANCE}/api/v3/ticker/price?symbol=ETHEUR').text)['price'])
     context.bot.sendMessage(chat_id=update.message.chat_id, text=f'Preu del ETH:  {dollars}$ ({eur}€)')
 
-def bitcoinWatch(context):
+def bitcoinWatch():
     global BTCUSD
     dollars = float(json.loads(requests.get(f'{BINANCE}/api/v3/ticker/price?symbol=BTCBUSD').text)['price'])
     eur = float(json.loads(requests.get(f'{BINANCE}/api/v3/ticker/price?symbol=BTCEUR').text)['price'])
@@ -212,7 +212,7 @@ def bitcoinWatch(context):
         BTCUSD = truncate(dollars, -3)
 
 
-def ethWatch(context):
+def ethWatch():
     global ETHUSD
     dollars = float(json.loads(requests.get(f'{BINANCE}/api/v3/ticker/price?symbol=ETHBUSD').text)['price'])
 
@@ -247,6 +247,9 @@ dp.add_handler(CommandHandler('eth', ethPrice))
 dp.add_handler(CommandHandler('startWeather', setDailyWeather, pass_job_queue=True))
 dp.add_handler(CommandHandler('stopWeather', removeDailyWeather, pass_job_queue=True))
 dp.add_handler(MessageHandler(Filters.all, specialMessage))
+
+bitcoinWatch()
+ethWatch()
 
 jobQ.run_repeating(serverCheck, 300)
 jobQ.run_repeating(bitcoinWatch, 300)
