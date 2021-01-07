@@ -222,7 +222,7 @@ def ethWatch(context=None):
         updater.bot.sendMessage(chat_id=MYTLGID, text=f'𝅉 ETH Up! {dollars}$')
         ETHUSD = truncate(dollars, -2)
 
-    elif truncate(dollars, -3) < ETHUSD:
+    elif truncate(dollars, -2) < ETHUSD:
         updater.bot.sendMessage(chat_id=MYTLGID, text=f'𝅏 ETH Down! {dollars}$')
         ETHUSD = truncate(dollars, -2)
 
