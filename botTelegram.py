@@ -193,6 +193,9 @@ def ethPrice(update, context):
     eur = float(json.loads(requests.get(f'{BINANCE}/api/v3/ticker/price?symbol=ETHEUR').text)['price'])
     context.bot.sendMessage(chat_id=update.message.chat_id, text=f'Preu del ETH:  {dollars}$ ({eur}€)')
 
+def doge(update, context):
+    context.bot.sendMessage(chat_id=update.message.chat_id, text=f'1 Doge = 1 Doge')
+                                
 def bitcoinWatch(context=None):
     global BTCUSD
     dollars = float(json.loads(requests.get(f'{BINANCE}/api/v3/ticker/price?symbol=BTCBUSD').text)['price'])
@@ -224,7 +227,7 @@ def ethWatch(context=None):
 
     elif truncate(dollars, -2) < ETHUSD:
         updater.bot.sendMessage(chat_id=MYTLGID, text=f'𝅏 ETH Down! {dollars}$')
-        ETHUSD = truncate(dollars, -2)
+        ETHUSD = truncate(dollars, -2)  
 
 
 """Run the bot."""
@@ -240,6 +243,7 @@ dp.add_handler(CommandHandler('ip', getPublicIP))
 dp.add_handler(CommandHandler('bicing', myBicing))
 dp.add_handler(CommandHandler('btc', btcPrice))
 dp.add_handler(CommandHandler('eth', ethPrice))
+dp.add_handler(CommandHandler('doge', doge))
 dp.add_handler(CommandHandler('startWeather', setDailyWeather, pass_job_queue=True))
 dp.add_handler(CommandHandler('stopWeather', removeDailyWeather, pass_job_queue=True))
 dp.add_handler(MessageHandler(Filters.all, specialMessage))
