@@ -163,7 +163,10 @@ def specialMessage(update, context):
         if 'engrescat' in update.message.text.lower():
             message = context.bot.sendAnimation(chat_id=update.message.chat_id, animation='https://media2.giphy.com/media/U5UieHLUiMpisOzAe5/giphy.gif')
         if 'suu' in update.message.text.lower():
-            message = context.bot.sendMessage(chat_id=update.message.chat_id, text='https://www.youtube.com/watch?v=X7qwQjc008Y')                    
+            message = context.bot.sendMessage(chat_id=update.message.chat_id, text='https://www.youtube.com/watch?v=X7qwQjc008Y')
+        if 'llaminer' in update.message.text.lower():
+            message = context.bot.sendAnimation(chat_id=update.message.chat_id, animation='https://j.gifs.com/MwM8m1.gif')
+                                
     if update.message.location:
         myLocation = (update.message['location']['latitude'], update.message['location']['longitude'])
 
