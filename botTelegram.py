@@ -167,7 +167,7 @@ def specialMessage(update, context):
         if 'llaminer' in update.message.text.lower():
             message = context.bot.sendAnimation(chat_id=update.message.chat_id, animation='https://j.gifs.com/MwM8m1.gif')
         if 'to the moon' in update.message.text.lower():
-            message = context.bot.sendAnimation(chat_id=update.message.chat_id, text=f'{emoji.emojize(":rocket::rocket::rocket:", use_aliases=True)}')
+            message = context.bot.sendMessage(chat_id=update.message.chat_id, text=f'{emoji.emojize(":rocket::rocket::rocket:", use_aliases=True)}')
                                 
     if update.message.location:
         myLocation = (update.message['location']['latitude'], update.message['location']['longitude'])
