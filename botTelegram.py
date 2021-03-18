@@ -234,12 +234,29 @@ def ethWatch(context=None):
 
     elif truncate(dollars, -2) < ETHUSD:
         updater.bot.sendMessage(chat_id=MYTLGID, text=f'𝅏 ETH Down! {dollars}$')
-        ETHUSD = truncate(dollars, -2)  
+        ETHUSD = truncate(dollars, -2)
+                                              
+def adaWatch(context=None):
+    global ADAUSD
+    dollars = float(json.loads(requests.get(f'{BINANCE}/api/v3/ticker/price?symbol=ADABUSD').text)['price'])
+
+    if ADAUSD == 0:
+        updater.bot.sendMessage(chat_id=MYTLGID, text=f'Bot just booted up, price monitoring ADA at: {dollars}$')
+        ADAUSD = truncate(dollars, 2)
+
+    elif truncate(dollars, 2) > ADAUSD:
+        updater.bot.sendMessage(chat_id=MYTLGID, text=f'𝅉 ADA Up! {dollars}$')
+        ADAUSD = truncate(dollars, 2)
+
+    elif truncate(dollars, 2) < ADAUSD:
+        updater.bot.sendMessage(chat_id=MYTLGID, text=f'𝅏 ADA Down! {dollars}$')
+        ADAUSD = truncate(dollars, 2)              
 
 
 """Run the bot."""
 BTCUSD = 0
 ETHUSD = 0
+ADAUSD = 0
 updater = Updater(token=BOTTOKEN, use_context=True)
 jobQ = updater.job_queue
 
@@ -257,10 +274,12 @@ dp.add_handler(MessageHandler(Filters.all, specialMessage))
 
 bitcoinWatch()
 ethWatch()
+adaWatch()
 
 jobQ.run_repeating(serverCheck, 300)
 jobQ.run_repeating(bitcoinWatch, 300)
 jobQ.run_repeating(ethWatch, 300)
+jobQ.run_repeating(adaWatch, 300)
 updater.start_polling()
 updater.idle()
 
