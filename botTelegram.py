@@ -247,15 +247,15 @@ def adaWatch(context=None):
 
     if ADAUSD == 0:
         updater.bot.sendMessage(chat_id=MYTLGID, text=f'Bot just booted up, price monitoring ADA at: {dollars}$')
-        ADAUSD = truncate(dollars, 2)
+        ADAUSD = truncate(dollars, 1)
 
-    elif truncate(dollars, 2) > ADAUSD:
+    elif truncate(dollars, 1) > ADAUSD:
         updater.bot.sendMessage(chat_id=MYTLGID, text=f'𝅉 ADA Up! {dollars}$')
-        ADAUSD = truncate(dollars, 2)
+        ADAUSD = truncate(dollars, 1)
 
     elif truncate(dollars, 2) < ADAUSD:
         updater.bot.sendMessage(chat_id=MYTLGID, text=f'𝅏 ADA Down! {dollars}$')
-        ADAUSD = truncate(dollars, 2)              
+        ADAUSD = truncate(dollars, 1)              
 
 
 """Run the bot."""
