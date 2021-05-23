@@ -178,8 +178,8 @@ def specialMessage(update, context):
             message = fetchBicing(myLocation)
 
             for m in message:
-                context.bot.sendMessage(chat_id=update.message.chat_id, text=m['message'])
-                context.bot.sendLocation(chat_id=update.message.chat_id, latitude=m['lat'], longitude=m['lon'])
+                context.bot.sendMessage(chat_id=update.message.chat_id, text=m['text'])
+                context.bot.sendLocation(chat_id=update.message.chat_id, latitude=m['lat'], longitude=m['long'])
 
         except Exception as e:
             if update.message.from_user.id == MYTLGID:
