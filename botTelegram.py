@@ -3,6 +3,7 @@
 import logging
 import json
 from telegram.ext import Updater, MessageHandler, Filters, CommandHandler, ConversationHandler
+from telegram import Location
 from requests import get
 import time
 import datetime
@@ -57,10 +58,11 @@ def fetchBicing(location):
             stations.append(s)
         id += 1
     stations.sort(key=lambda x: x.distance)
-    message =[]
+    message = []
     for i in range(0, 3):
-        message.append(f'{stations[i].name} amb:\nBicis elèctriques: {stations[i].elec}\nBicis mecàniques: ' \
-                   f'{stations[i].mech}\nDistància: {int(stations[i].distance)} metres\n')
+        message.append({'text':f'{stations[i].name} amb:\nBicis elèctriques: {stations[i].elec}\nBicis mecàniques: ' \
+                   f'{stations[i].mech}\nDistància: {int(stations[i].distance)} metres\n',
+                        'long': station[i].long, 'lat' : station[i].lat})
 
     return message
 
@@ -176,7 +178,8 @@ def specialMessage(update, context):
             message = fetchBicing(myLocation)
 
             for m in message:
-                context.bot.sendMessage(chat_id=update.message.chat_id, text=m)
+                context.bot.sendMessage(chat_id=update.message.chat_id, text=m['message'])
+                context.bot.sendLocation(chat_id=update.message.chat_id, latitude=m['lat'], longitude=m['lon'])
 
         except Exception as e:
             if update.message.from_user.id == MYTLGID:
