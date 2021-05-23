@@ -59,9 +59,9 @@ def fetchBicing(location):
     stations.sort(key=lambda x: x.distance)
     message = []
     for i in range(0, 3):
-        message.append({'text':f'{stations[i].name} amb:\nBicis elèctriques: {stations[i].elec}\nBicis mecàniques: ' \
+        message.append({'text': f'{stations[i].name} amb:\nBicis elèctriques: {stations[i].elec}\nBicis mecàniques: ' \
                    f'{stations[i].mech}\nDistància: {int(stations[i].distance)} metres\n',
-                        'long': station[i].long, 'lat' : station[i].lat})
+                        'long': station[i].long, 'lat': station[i].lat})
 
     return message
 
@@ -174,10 +174,11 @@ def specialMessage(update, context):
         myLocation = (update.message['location']['latitude'], update.message['location']['longitude'])
 
         try:
+            logging.INFO("no petis")
             message = fetchBicing(myLocation)
-            print('this should work')
+            logging.INFO('this should work')
             for m in message:
-                print(m)
+                logging.INFO(m)
                 context.bot.sendMessage(chat_id=update.message.chat_id, text=m['text'])
                 context.bot.sendLocation(chat_id=update.message.chat_id, latitude=m['lat'], longitude=m['long'])
 
