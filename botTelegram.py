@@ -3,7 +3,6 @@
 import logging
 import json
 from telegram.ext import Updater, MessageHandler, Filters, CommandHandler, ConversationHandler
-from telegram import Location
 from requests import get
 import time
 import datetime
@@ -176,8 +175,9 @@ def specialMessage(update, context):
 
         try:
             message = fetchBicing(myLocation)
-
+            print('this should work')
             for m in message:
+                print(m)
                 context.bot.sendMessage(chat_id=update.message.chat_id, text=m['text'])
                 context.bot.sendLocation(chat_id=update.message.chat_id, latitude=m['lat'], longitude=m['long'])
 
