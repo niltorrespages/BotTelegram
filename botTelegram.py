@@ -127,7 +127,8 @@ def myBicing(update, context):
         try:
             message = fetchBicing(CANGAUDIR)
             for m in message:
-                context.bot.sendMessage(chat_id=update.message.chat_id, text=m)
+                context.bot.sendMessage(chat_id=update.message.chat_id, text=m['text'])
+                context.bot.sendLocation(chat_id=update.message.chat_id, latitude=m['lat'], longitude=m['long'])
 
         except Exception as e:
             context.bot.sendMessage(chat_id=update.message.chat_id, text=f'Error al processar: {e}')
