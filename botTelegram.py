@@ -260,6 +260,17 @@ def adaWatch(context=None):
         updater.bot.sendMessage(chat_id=MYTLGID, text=f'𝅏 ADA Down! {dollars}$')
         ADAUSD = truncate(dollars, 1)              
 
+def fearGreedAllBTC(update, context):
+    try:
+        updater.bot.sendPhoto(chat_id=update.message.chat_id, photo='https://alternative.me/crypto/fear-and-greed-index.png')
+    except:
+        updater.bot.sendMessage(chat_id=update.message.chat_id, text=f'𝅏Error with fear and greed indicator')
+
+def fearGreedBTC(update, context):
+    try:
+        updater.bot.sendPhoto(chat_id=MYTLGID, photo='https://alternative.me/crypto/fear-and-greed-index.png')
+    except:
+        updater.bot.sendMessage(chat_id=MYTLGID, text=f'𝅏Error with fear and greed indicator')
 
 """Run the bot."""
 BTCUSD = 0
@@ -277,6 +288,7 @@ dp.add_handler(CommandHandler('btc', btcPrice))
 dp.add_handler(CommandHandler('eth', ethPrice))
 dp.add_handler(CommandHandler('ada', adaPrice))
 dp.add_handler(CommandHandler('doge', doge))
+dp.add_handler(CommandHandler('fearandgreed', fearGreedAllBTC))
 dp.add_handler(CommandHandler('startWeather', setDailyWeather, pass_job_queue=True))
 dp.add_handler(CommandHandler('stopWeather', removeDailyWeather, pass_job_queue=True))
 dp.add_handler(MessageHandler(Filters.all, specialMessage))
@@ -289,6 +301,7 @@ jobQ.run_repeating(serverCheck, 300)
 jobQ.run_repeating(bitcoinWatch, 300)
 jobQ.run_repeating(ethWatch, 300)
 jobQ.run_repeating(adaWatch, 300)
+jobQ.run_daily(fearGreedBTC, datetime.time(hour=8))
 updater.start_polling()
 updater.idle()
 
