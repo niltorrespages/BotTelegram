@@ -262,13 +262,19 @@ def adaWatch(context=None):
 
 def fearGreedAllBTC(update, context):
     try:
-        updater.bot.sendPhoto(chat_id=update.message.chat_id, photo='https://alternative.me/crypto/fear-and-greed-index.png')
+        file = open("fearAndGreed.png", "wb")
+        file.write(requests.get("https://alternative.me/crypto/fear-and-greed-index.png").content)
+        file.close()
+        updater.bot.sendPhoto(chat_id=update.message.chat_id, photo=open("fearAndGreed.png", "rb"))
     except:
         updater.bot.sendMessage(chat_id=update.message.chat_id, text=f'𝅏Error with fear and greed indicator')
 
 def fearGreedBTC(update, context):
     try:
-        updater.bot.sendPhoto(chat_id=MYTLGID, photo='https://alternative.me/crypto/fear-and-greed-index.png')
+        file = open("fearAndGreed.png", "wb")
+        file.write(requests.get("https://alternative.me/crypto/fear-and-greed-index.png").content)
+        file.close()
+        updater.bot.sendPhoto(chat_id=MYTLGID, photo=open("fearAndGreed.png", "rb"))
     except:
         updater.bot.sendMessage(chat_id=MYTLGID, text=f'𝅏Error with fear and greed indicator')
 
