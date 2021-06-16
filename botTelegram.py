@@ -269,7 +269,7 @@ def fearGreedAllBTC(update, context):
     except:
         updater.bot.sendMessage(chat_id=update.message.chat_id, text=f'𝅏Error with fear and greed indicator')
 
-def fearGreedBTC(update, context):
+def fearGreedBTC(context=None):
     try:
         file = open("fearAndGreed.png", "wb")
         file.write(requests.get("https://alternative.me/crypto/fear-and-greed-index.png").content)
