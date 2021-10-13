@@ -214,7 +214,7 @@ def calcRiskMetric(context = None):
                     coinData.append('NA')
                     mData.append('NA')
                 else:
-
+                    print(coin)
                     risk = riskMetric(coinId=coin, currency=currency)
                     coinData.append(risk)
                     mData.append(round(float(risk) * 100, 2))
@@ -241,7 +241,7 @@ def initCredsFile():
     f = open('creds.json', 'x')
     f.write(GOOGLEAPI)
     f.close()
-    print(system('ls'))
+    print(system('cat creds.json'))
 
 """Run the bot."""
 load_dotenv()
