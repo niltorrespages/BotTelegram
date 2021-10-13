@@ -8,21 +8,11 @@ import time
 import datetime
 import requests
 from geopy.distance import geodesic
-from os import environ, path
+from os import environ, system
 from dotenv import load_dotenv
 import emoji
 from sheetsConnection import getSheetInfo, setRiskInfo, setCoinsInfo
 from risk import riskMetric
-
-
-load_dotenv()
-
-BOTTOKEN = environ['BOTTOKEN'] 
-MYTLGID = int(environ['MYTLGID'])
-CANGAUDIR =(float(environ['HOMELAT']), float(environ['HOMELONG']))
-
-BINANCE = "https://api.binance.com"
-
 
 class Station(object):
 
@@ -247,18 +237,26 @@ def refreshSheetData(context = None):
     setCoinsInfo()
 
 def initCredsFile():
-    if not path.exists('creds.json'):
-        GOOGLEAPI = environ['GOOGLEAPI']
-        f = open('creds.json', 'x')
-        f.write(GOOGLEAPI)
-        f.close()
+    GOOGLEAPI = environ['GOOGLEAPI']
+    f = open('creds.json', 'x')
+    f.write(GOOGLEAPI)
+    f.close()
+    print(system('ls'))
 
 """Run the bot."""
+load_dotenv()
+
+BOTTOKEN = environ['BOTTOKEN']
+MYTLGID = int(environ['MYTLGID'])
+CANGAUDIR =(float(environ['HOMELAT']), float(environ['HOMELONG']))
+
+BINANCE = "https://api.binance.com"
 
 BTCUSD = 0
 ETHUSD = 0
 ADAUSD = 0
 RiskMetricMessage = ""
+
 initCredsFile()
 
 updater = Updater(token=BOTTOKEN, use_context=True)
