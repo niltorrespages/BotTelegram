@@ -8,24 +8,20 @@ import time
 import datetime
 import requests
 from geopy.distance import geodesic
-from os import environ
+from os import environ, path
 from dotenv import load_dotenv
 import emoji
+from sheetsConnection import getSheetInfo, setRiskInfo, setCoinsInfo
+from risk import riskMetric
+
 
 load_dotenv()
 
-WEATHERAPI = environ['WEATHERAPI'] 
 BOTTOKEN = environ['BOTTOKEN'] 
 MYTLGID = int(environ['MYTLGID'])
 CANGAUDIR =(float(environ['HOMELAT']), float(environ['HOMELONG']))
-WEB = environ['WEB']
-INTRANET = environ['INTRANET']
-ENTRADES = environ['ENTRADES']
 
 BINANCE = "https://api.binance.com"
-
-
-goodWeather = ['Clear', 'Clouds']
 
 
 class Station(object):
@@ -67,55 +63,6 @@ def fetchBicing(location):
                         'long': stations[i].long, 'lat': stations[i].lat})
     return message
 
-def removeDailyWeather(update, context):
-
-    j = jobQ.get_jobs_by_name(update.message.chat_id)
-    if j:
-        j[0].schedule_removal()
-        message = context.bot.sendMessage(chat_id=update.message.chat_id,
-                                          text='Lo siento, no le volvere a molestar mi amo')
-    else:
-        message = context.bot.sendMessage(chat_id=update.message.chat_id, text='No le iba a avisar puto')
-
-def setDailyWeather(update, context):
-    if not jobQ.get_jobs_by_name(update.message.chat_id):
-        message = context.bot.sendMessage(chat_id=update.message.chat_id,
-                                          text='Si mi amo, voy a mirar al cielo cada dia')
-        jobQ.run_daily(runDailyWeather, datetime.time(6, 30, 00, 000000), name=update.message.chat_id, context=update.message.chat_id)
-
-    else:
-        message = context.bot.sendMessage(chat_id=update.message.chat_id, text='Ya le estaba avisando puto')
-
-
-def weather():
-    temps = json.loads(requests.get(WEATHERAPI).text)
-    state = ''
-    start = 7
-    message = ''
-    for hora in temps['hourly'][:14]:
-
-        for w in hora['weather']:
-            if w['description'] != state:
-                if state == '':
-                    start = time.localtime(hora['dt']).tm_hour
-                    state = w['description']
-
-                else:
-                    end = time.localtime(hora['dt']).tm_hour
-                    if (w['main'] not in goodWeather):
-                        message += f'En les pròximes hores, des de les {start}:00 fins les {end}:00 tindrem un/a {w["description"]}\n'
-                    state = w['description']
-                    start = end
-
-    return message if message else 'No es preveu mal temps'
-
-
-def runWeather(update, context):
-    message = context.bot.sendMessage(chat_id=update.message.chat_id, text=weather())
-
-def runDailyWeather(context):
-    message = context.bot.sendMessage(chat_id=context.job.context, text=weather())
-
 
 def getPublicIP(update, context):
     if update.message.from_user.id == MYTLGID:
@@ -133,29 +80,6 @@ def myBicing(update, context):
         except Exception as e:
             context.bot.sendMessage(chat_id=update.message.chat_id, text=f'Error al processar: {e}')
             print(e)
-
-
-def serverCheck(context):
-
-    try:
-        web = requests.get(WEB).status_code
-        if web != 200:
-            updater.bot.sendMessage(chat_id=MYTLGID, text=f'{emoji.emojize(":computer::computer:", use_aliases=True)} Sembla que la web esta caiguda')
-    except:
-        updater.bot.sendMessage(chat_id=MYTLGID, text=f'{emoji.emojize(":computer::computer:", use_aliases=True)} Sembla que la web esta caiguda')
-    try:
-        entrades = requests.get(ENTRADES).status_code
-        if entrades != 200:
-            updater.bot.sendMessage(chat_id=MYTLGID, text=f'{emoji.emojize(":computer::computer:", use_aliases=True)} Sembla que les entrades esta caigudes')
-    except:
-        updater.bot.sendMessage(chat_id=MYTLGID, text=f'{emoji.emojize(":computer::computer:", use_aliases=True)} Sembla que la entrades esta caiguda')
-    try:
-        intranet = requests.get(INTRANET).status_code
-        if intranet != 200:
-            updater.bot.sendMessage(chat_id=MYTLGID, text=f'{emoji.emojize(":computer::computer:", use_aliases=True)} Sembla que la intranet esta caiguda')
-    except:
-        updater.bot.sendMessage(chat_id=MYTLGID, text=f'{emoji.emojize(":computer::computer:", use_aliases=True)} Sembla que la intranet esta caiguda')
-
 
 
 def specialMessage(update, context):
@@ -278,16 +202,65 @@ def fearGreedBTC(context=None):
     except:
         updater.bot.sendMessage(chat_id=MYTLGID, text=f'𝅏Error with fear and greed indicator')
 
+def calcRiskMetric(context = None):
+    currencies = ['usd', 'btc']
+    coins = getSheetInfo()
+    risks = []
+    i = 0
+    message = "Today risk metrics:"
+    for coin in coins:
+        coinData = []
+        mData = []
+        coin = "" if len(coin) == 0 else coin[0]
+        for currency in currencies:
+            if coin:
+                if currency == 'btc' and coin == 'bitcoin':
+                    coinData.append('NA')
+                    mData.append('NA')
+                elif currency == 'eth' and coin == 'ethereum':
+                    coinData.append('NA')
+                    mData.append('NA')
+                elif currency == 'eth' and coin == 'bitcoin':
+                    coinData.append('NA')
+                    mData.append('NA')
+                else:
+
+                    risk = riskMetric(coinId=coin, currency=currency)
+                    coinData.append(risk)
+                    mData.append(round(float(risk) * 100, 2))
+
+            else:
+                coinData = ["", ""]
+                mData = ["",""]
+        if coin:
+            message += f"\n{coin.capitalize()}: {mData[0]}% (usd) {mData[1]}% (btc)"
+        risks.append(coinData)
+        i += 1
+    setRiskInfo(risks)
+    updater.bot.sendMessage(chat_id=MYTLGID, text=message)
+
+def refreshSheetData(context = None):
+    setCoinsInfo()
+
+def initCredsFile():
+    if not path.exists('creds.json'):
+        GOOGLEAPI = environ['GOOGLEAPI']
+        f = open('creds.json', 'x')
+        f.write(GOOGLEAPI)
+        f.close()
+
 """Run the bot."""
+
 BTCUSD = 0
 ETHUSD = 0
 ADAUSD = 0
+initCredsFile()
+
 updater = Updater(token=BOTTOKEN, use_context=True)
 jobQ = updater.job_queue
 
 dp = updater.dispatcher
 logging.basicConfig(format='%(asctime)s - %(name)s - %(levelname)s - %(message)s', level=logging.INFO)
-dp.add_handler(CommandHandler('weather', runWeather))
 dp.add_handler(CommandHandler('ip', getPublicIP))
 dp.add_handler(CommandHandler('bicing', myBicing))
 dp.add_handler(CommandHandler('btc', btcPrice))
@@ -295,19 +268,19 @@ dp.add_handler(CommandHandler('eth', ethPrice))
 dp.add_handler(CommandHandler('ada', adaPrice))
 dp.add_handler(CommandHandler('doge', doge))
 dp.add_handler(CommandHandler('fearandgreed', fearGreedAllBTC))
-dp.add_handler(CommandHandler('startWeather', setDailyWeather, pass_job_queue=True))
-dp.add_handler(CommandHandler('stopWeather', removeDailyWeather, pass_job_queue=True))
 dp.add_handler(MessageHandler(Filters.all, specialMessage))
 
 bitcoinWatch()
 ethWatch()
 adaWatch()
+calcRiskMetric()
 
-jobQ.run_repeating(serverCheck, 300)
 jobQ.run_repeating(bitcoinWatch, 300)
 jobQ.run_repeating(ethWatch, 300)
 jobQ.run_repeating(adaWatch, 300)
 jobQ.run_daily(fearGreedBTC, datetime.time(hour=8))
+jobQ.run_daily(calcRiskMetric, datetime.time(hour=8))
+jobQ.run_repeating(refreshSheetData, 600)
 updater.start_polling()
 updater.idle()
 
