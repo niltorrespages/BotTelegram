@@ -70,6 +70,8 @@ def riskMetric(coinId='bitcoin', currency='usd'):
     df = df[df.Date > f_date]
     df.reset_index(inplace=True)
 
+    ######################### Mayer Multiple ##############################
+    df["Mayer"] = df["Value"] / df["Value"].rolling(200).mean()
 
     ######################### Puell Multiple ##############################
 
@@ -78,14 +80,19 @@ def riskMetric(coinId='bitcoin', currency='usd'):
     df["MAusdIssuance"] = df["usdIssuance"].rolling(window=365).mean()
     df["usdoverMA"] = df["usdIssuance"] / df["MAusdIssuance"]
 
-    ######################### Price/50W MA ###############################
+    ######################### 50d/50W MA ###############################
 
-    df["Price/50w"] = df["Value"] / df["Value"].ewm(span=365).mean()
+    df["50d/50w"] = df["Value"] / df["Value"].ewm(span=365).mean()
 
     ######################### Sharpe Ratio ###############################
 
     df["Return%"] = df["Value"].pct_change() * 100
-    df["Sharpe"] = (df["Return%"].rolling(365).mean() - 1) / df["Return%"].expanding().std()
+    df["Sharpe"] = (df["Return%"].rolling(365).mean() - 1) / df["Return%"].rolling(365).std()
+
+    ########################## Sortino ###################################
+
+    dfs = df[df["Return%"] < 0]
+    df["Sortino"] = (df["Return%"].rolling(365).mean() - 1) / dfs["Return%"].rolling(365).std()
 
     ########################## Power Law ################################
 
@@ -94,8 +101,8 @@ def riskMetric(coinId='bitcoin', currency='usd'):
 
     ######################## avg ###################################
 
-    df.update(normalizationhalving(["usdoverMA", "Price/50w", "ossvalues", "Sharpe"]))
-    df["avg"] = (df["ossvalues"] * 0.25 + df["Price/50w"] * 0.25 + df["usdoverMA"] * 0.25 + df["Sharpe"] * 0.25)
+    df.update(normalizationhalving(["usdoverMA", "50d/50w", "ossvalues", "Sharpe", "Sortino", "Mayer"]))
+    df["avg"] = df[["usdoverMA", "50d/50w", "ossvalues", "Sharpe", "Mayer"]].mean(axis=1)
     return df["avg"].iloc[-1]
 
 

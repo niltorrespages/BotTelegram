@@ -193,6 +193,7 @@ def fearGreedBTC(context=None):
         updater.bot.sendMessage(chat_id=MYTLGID, text=f'𝅏Error with fear and greed indicator')
 
 def calcRiskMetric(context = None):
+    global RiskMetricMessage
     currencies = ['usd', 'btc']
     coins = getSheetInfo()
     risks = []
@@ -214,7 +215,6 @@ def calcRiskMetric(context = None):
                     coinData.append('NA')
                     mData.append('NA')
                 else:
-                    print(coin)
                     risk = riskMetric(coinId=coin, currency=currency)
                     coinData.append(risk)
                     mData.append(round(float(risk) * 100, 2))
@@ -230,7 +230,8 @@ def calcRiskMetric(context = None):
     RiskMetricMessage = message
     updater.bot.sendMessage(chat_id=MYTLGID, text=message)
 
-def riskMetric(update, context):
+def riskMetricCommand(update, context):
+    global RiskMetricMessage
     context.bot.sendMessage(chat_id=update.message.chat_id, text=RiskMetricMessage)
 
 def refreshSheetData(context = None):
@@ -241,7 +242,6 @@ def initCredsFile():
     f = open('creds.json', 'x')
     f.write(GOOGLEAPI)
     f.close()
-    print(system('cat creds.json'))
 
 """Run the bot."""
 load_dotenv()
@@ -270,7 +270,7 @@ dp.add_handler(CommandHandler('btc', btcPrice))
 dp.add_handler(CommandHandler('eth', ethPrice))
 dp.add_handler(CommandHandler('ada', adaPrice))
 dp.add_handler(CommandHandler('doge', doge))
-dp.add_handler(CommandHandler('risk', riskMetric))
+dp.add_handler(CommandHandler('risk', riskMetricCommand))
 dp.add_handler(CommandHandler('fearandgreed', fearGreedAllBTC))
 dp.add_handler(MessageHandler(Filters.all, specialMessage))
 
