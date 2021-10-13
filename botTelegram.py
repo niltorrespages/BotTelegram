@@ -237,7 +237,11 @@ def calcRiskMetric(context = None):
         risks.append(coinData)
         i += 1
     setRiskInfo(risks)
+    RiskMetricMessage = message
     updater.bot.sendMessage(chat_id=MYTLGID, text=message)
+
+def riskMetric(update, context):
+    context.bot.sendMessage(chat_id=update.message.chat_id, text=RiskMetricMessage)
 
 def refreshSheetData(context = None):
     setCoinsInfo()
@@ -254,6 +258,7 @@ def initCredsFile():
 BTCUSD = 0
 ETHUSD = 0
 ADAUSD = 0
+RiskMetricMessage = ""
 initCredsFile()
 
 updater = Updater(token=BOTTOKEN, use_context=True)
@@ -267,6 +272,7 @@ dp.add_handler(CommandHandler('btc', btcPrice))
 dp.add_handler(CommandHandler('eth', ethPrice))
 dp.add_handler(CommandHandler('ada', adaPrice))
 dp.add_handler(CommandHandler('doge', doge))
+dp.add_handler(CommandHandler('risk', riskMetric))
 dp.add_handler(CommandHandler('fearandgreed', fearGreedAllBTC))
 dp.add_handler(MessageHandler(Filters.all, specialMessage))
 
