@@ -78,14 +78,15 @@ def specialMessage(update, context):
     # if update.message.new_chat_photo:
     #     message = context.bot.sendPoll(chat_id=update.message.chat_id, question="FoC", options=['F', 'C'], is_anonymous=False)
     if update.message.chat.type in ['supergroup', 'group']:
-        if 'engrescat' in update.message.text.lower():
-            message = context.bot.sendAnimation(chat_id=update.message.chat_id, animation='https://media2.giphy.com/media/U5UieHLUiMpisOzAe5/giphy.gif')
-        if 'suu' in update.message.text.lower():
-            message = context.bot.sendAnimation(chat_id=update.message.chat_id, animation='https://media3.giphy.com/media/NxIAnAN4yHhj806YS0/giphy.gif')
-        if 'llaminer' in update.message.text.lower():
-            message = context.bot.sendAnimation(chat_id=update.message.chat_id, animation='https://j.gifs.com/MwM8m1.gif')
-        if 'to the moon' in update.message.text.lower():
-            message = context.bot.sendMessage(chat_id=update.message.chat_id, text=f'{emoji.emojize(":rocket::rocket::rocket:", use_aliases=True)}')
+        if update.message.text:
+            if 'engrescat' in update.message.text.lower():
+                message = context.bot.sendAnimation(chat_id=update.message.chat_id, animation='https://media2.giphy.com/media/U5UieHLUiMpisOzAe5/giphy.gif')
+            if 'suu' in update.message.text.lower():
+                message = context.bot.sendAnimation(chat_id=update.message.chat_id, animation='https://media3.giphy.com/media/NxIAnAN4yHhj806YS0/giphy.gif')
+            if 'llaminer' in update.message.text.lower():
+                message = context.bot.sendAnimation(chat_id=update.message.chat_id, animation='https://j.gifs.com/MwM8m1.gif')
+            if 'to the moon' in update.message.text.lower():
+                message = context.bot.sendMessage(chat_id=update.message.chat_id, text=f'{emoji.emojize(":rocket::rocket::rocket:", use_aliases=True)}')
                                 
     if update.message.location:
         myLocation = (update.message['location']['latitude'], update.message['location']['longitude'])
@@ -310,8 +311,9 @@ jobQ.run_daily(fearGreedBTC, datetime.time(hour=8))
 jobQ.run_daily(riskMetricDaily, datetime.time(hour=8))
 jobQ.run_repeating(refreshSheetData, 600)
 
-### Notify new boot
+### Notify new correct boot
 
+print("Bot just booted up correctly")
 updater.bot.sendMessage(chat_id=MYTLGID, text=f'Bot just booted up correctly')
 
 updater.start_polling()
