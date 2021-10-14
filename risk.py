@@ -5,8 +5,8 @@ from datetime import date, datetime, timezone
 from sklearn.linear_model import LinearRegression
 import plotly.graph_objects as go
 from plotly.subplots import make_subplots
-import time
-from sheetsConnection import getSheetInfo
+import yfinance as yf
+import quandl as quandl
 global df
 
 def datetime_to_unix(year, month, day):
@@ -54,12 +54,19 @@ def normalizationhalving(Normlist):
 def riskMetric(coinId='bitcoin', currency='usd'):
     global df
     #Initialize DataFrame from coinGeckoAPI()
-    cg = CoinGeckoAPI()
-    data = cg.get_coin_market_chart_by_id(id=coinId, vs_currency=currency, days='max')
-    time = [unix_to_datetime(i[0]) for i in data['prices']]
-    p_array = np.array(data['prices'])
-    price = p_array[:, 1]
-    df = pd.DataFrame({'Date': time, 'Value': price})
+    if coinId == 'bitcoin':
+        df = quandl.get("BCHAIN/MKPRU", api_key="FYzyusVT61Y4w65nFESX").reset_index()
+        btcdata = yf.download(tickers='BTC-USD', period="1d", interval="1m")["Close"]
+        lastprice = btcdata.iloc[-1]
+        df.loc[len(df)] = [date.today(), lastprice]
+
+    else:
+        cg = CoinGeckoAPI()
+        data = cg.get_coin_market_chart_by_id(id=coinId, vs_currency=currency, days='max')
+        time = [unix_to_datetime(i[0]) for i in data['prices']]
+        p_array = np.array(data['prices'])
+        price = p_array[:, 1]
+        df = pd.DataFrame({'Date': time, 'Value': price})
 
     df = df[df["Value"] > 0]
     df["Date"] = pd.to_datetime(df["Date"])

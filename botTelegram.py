@@ -13,6 +13,7 @@ from dotenv import load_dotenv
 import emoji
 from sheetsConnection import getSheetInfo, setRiskInfo, setCoinsInfo
 from risk import riskMetric
+from imgGen import drawRisks
 
 class Station(object):
 
@@ -76,7 +77,6 @@ def specialMessage(update, context):
 
     # if update.message.new_chat_photo:
     #     message = context.bot.sendPoll(chat_id=update.message.chat_id, question="FoC", options=['F', 'C'], is_anonymous=False)
-
     if update.message.chat.type in ['supergroup', 'group']:
         if 'engrescat' in update.message.text.lower():
             message = context.bot.sendAnimation(chat_id=update.message.chat_id, animation='https://media2.giphy.com/media/U5UieHLUiMpisOzAe5/giphy.gif')
@@ -197,6 +197,7 @@ def calcRiskMetric(context = None):
     currencies = ['usd', 'btc']
     coins = getSheetInfo()
     risks = []
+    drawData = {}
     i = 0
     message = "Today risk metrics:"
     for coin in coins:
@@ -224,11 +225,13 @@ def calcRiskMetric(context = None):
                 mData = ["",""]
         if coin:
             message += f"\n{coin.capitalize()}: {mData[0]}% (usd) {mData[1]}% (btc)"
+            drawData.update({coin: mData[0]})
         risks.append(coinData)
         i += 1
     setRiskInfo(risks)
+    drawRisks(drawData)
     RiskMetricMessage = message
-    updater.bot.sendMessage(chat_id=MYTLGID, text=message)
+    updater.bot.sendPhoto(chat_id=CRIPTOBOYS, photo=open("risks.png", "rb"))
 
 def riskMetricCommand(update, context):
     global RiskMetricMessage
@@ -239,7 +242,7 @@ def refreshSheetData(context = None):
 
 def initCredsFile():
     GOOGLEAPI = environ['GOOGLEAPI']
-    f = open('creds.json', 'x')
+    f = open('creds.json', 'w')
     f.write(GOOGLEAPI)
     f.close()
 
@@ -248,6 +251,7 @@ load_dotenv()
 
 BOTTOKEN = environ['BOTTOKEN']
 MYTLGID = int(environ['MYTLGID'])
+CRIPTOBOYS = int(environ['CRIPTOBOYS'])
 CANGAUDIR =(float(environ['HOMELAT']), float(environ['HOMELONG']))
 
 BINANCE = "https://api.binance.com"
