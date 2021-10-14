@@ -8,6 +8,9 @@ from plotly.subplots import make_subplots
 import yfinance as yf
 import quandl as quandl
 global df
+import warnings
+
+warnings.filterwarnings("ignore")
 
 def datetime_to_unix(year, month, day):
     '''datetime_to_unix(2021, 6, 1) => 1622505600.0'''
@@ -53,10 +56,11 @@ def normalizationhalving(Normlist):
 
 def riskMetric(coinId='bitcoin', currency='usd'):
     global df
+    print(f"Calculating risk metric for {coinId} in {currency}...")
     #Initialize DataFrame from coinGeckoAPI()
     if coinId == 'bitcoin':
         df = quandl.get("BCHAIN/MKPRU", api_key="FYzyusVT61Y4w65nFESX").reset_index()
-        btcdata = yf.download(tickers='BTC-USD', period="1d", interval="1m")["Close"]
+        btcdata = yf.download(tickers='BTC-USD', period="1d", interval="1m", progress=False)["Close"]
         lastprice = btcdata.iloc[-1]
         df.loc[len(df)] = [date.today(), lastprice]
 
@@ -110,6 +114,7 @@ def riskMetric(coinId='bitcoin', currency='usd'):
 
     df.update(normalizationhalving(["usdoverMA", "50d/50w", "ossvalues", "Sharpe", "Sortino", "Mayer"]))
     df["avg"] = df[["usdoverMA", "50d/50w", "ossvalues", "Sharpe", "Mayer"]].mean(axis=1)
+    print(f"\tRisk metric calculated is: {df['avg'].iloc[-1]}")
     return df["avg"].iloc[-1]
 
 
@@ -120,40 +125,6 @@ def plotChart():
 
     fig = make_subplots(specs=[[{"secondary_y": True}]])
     xaxis = df.Date
-
-    # -> canvis de color per la grafica
-
-    # color_c = 'Viridis' # verdes-azul-amarillo
-    # color_c = 'Inferno' # lila-rojo-naranja-amarillo
-    # color_c = [[0.0, "rgb(165,0,38)"], [0.1111111111111111, "rgb(215,48,39)"],[0.2222222222222222, "rgb(244,109,67)"], [0.3333333333333333, "rgb(253,174,97)"],[0.4444444444444444, "rgb(254,224,144)"],[0.5555555555555556, "rgb(224,243,248)"],[0.6666666666666666, "rgb(171,217,233)"],[0.7777777777777778, "rgb(116,173,209)"],[0.8888888888888888, "rgb(69,117,180)"],[1.0, "rgb(49,54,149)"]]
-    # color_c = [[0.0, "rgb(49,54,149)"],
-    #            [0.1111111111111111, "rgb(69,117,180)"],
-    #            [0.2222222222222222, "rgb(116,173,209)"],
-    #            [0.3333333333333333, "rgb(171,217,233)"],
-    #            [0.4444444444444444, "rgb(224,243,248)"],
-    #            [0.5555555555555556, "rgb(254,224,144)"],
-    #            [0.6666666666666666, "rgb(253,174,97)"],
-    #            [0.7777777777777778, "rgb(244,109,67)"],
-    #            [0.8888888888888888, "rgb(215,48,39)"],
-    #            [1.0, "rgb(165,0,38)"]]
-
-    # fig.add_trace(go.Scatter(x=xaxis, y=df.Value, name="Price", mode='markers', marker=dict(color= df["avg"], colorscale=color_c, size=12, colorbar=dict(thickness=20))), secondary_y=False)
-    #
-    # fig.add_hrect(y0=0.4, y1=0.3, line_width=0, fillcolor = "green", opacity=0.3, secondary_y=True)
-    # fig.add_hrect(y0=0.3, y1=0.2, line_width=0, fillcolor = "green", opacity=0.4, secondary_y=True)
-    # fig.add_hrect(y0=0.2, y1=0, line_width=0, fillcolor = "green", opacity=0.5, secondary_y=True)
-    # fig.add_hrect(y0=0.6, y1=0.7, line_width=0, fillcolor = "red", opacity=0.3, secondary_y=True)
-    # fig.add_hrect(y0=0.7, y1=0.8, line_width=0, fillcolor = "red", opacity=0.4, secondary_y=True)
-    # fig.add_hrect(y0=0.8, y1=0.9, line_width=0, fillcolor = "red", opacity=0.5, secondary_y=True)
-    # fig.add_hrect(y0=0.9, y1=1.0, line_width=0, fillcolor = "red", opacity=0.6, secondary_y=True)
-    #
-    # fig.update_layout(xaxis_title='Date', yaxis_title='Price',
-    #                   yaxis2_title='Risk',
-    #                   yaxis1=dict(type='log', showgrid=False),
-    #                   yaxis2=dict(showgrid=True, tickmode='linear', tick0=0.0, dtick=0.1),
-    #                   template="plotly_dark")
-    #
-    # fig.show()
 
     fig.add_trace(go.Scatter(x=xaxis, y=df.Value, name="Price", line=dict(color="gold")), secondary_y=False)
     fig.add_trace(go.Scatter(x=xaxis, y=df["avg"], name="Risk", line=dict(color="white")), secondary_y=True)
@@ -170,40 +141,3 @@ def plotChart():
                       yaxis1=dict(type='log', showgrid=False),
                       yaxis2=dict(showgrid=True, tickmode='linear', tick0=0.0, dtick=0.1), template="plotly_dark")
     fig.show()
-
-# def calcRiskMetric(context = None):
-#     currencies = ['usd', 'btc']
-#     coins = getSheetInfo()
-#     risks = []
-#     i = 0
-#     for coin in coins:
-#         coinData = []
-#         coin = "" if len(coin) == 0 else coin[0]
-#         for currency in currencies:
-#
-#             if coin:
-#                 if currency == 'btc' and coin == 'bitcoin':
-#                     coinData.append('NA')
-#
-#                 elif currency == 'eth' and coin == 'ethereum':
-#                     coinData.append('NA')
-#                 elif currency == 'eth' and coin == 'bitcoin':
-#                     coinData.append('NA')
-#                 else:
-#                     print(f"Calculating risk metric for {coin} in {currency}")
-#                     risk = riskMetric(coinId=coin, currency=currency)
-#                     coinData.append(risk)
-#             else:
-#                 coinData = ["", ""]
-#         risks.append(coinData)
-#         i += 1
-#
-#     setSheetInfo(risks)
-#     return risks
-
-
-# df = pd.DataFrame()
-# risks = calcRiskMetric()
-#a = riskMetric(coinId='bitcoin', currency='usd')
-#print(a)
-#plotChart()

@@ -8,7 +8,7 @@ import time
 import datetime
 import requests
 from geopy.distance import geodesic
-from os import environ, system
+from os import environ, path
 from dotenv import load_dotenv
 import emoji
 from sheetsConnection import getSheetInfo, setRiskInfo, setCoinsInfo
@@ -130,7 +130,6 @@ def bitcoinWatch(context=None):
     dollars = float(json.loads(requests.get(f'{BINANCE}/api/v3/ticker/price?symbol=BTCBUSD').text)['price'])
     eur = float(json.loads(requests.get(f'{BINANCE}/api/v3/ticker/price?symbol=BTCEUR').text)['price'])
     if BTCUSD == 0:
-        updater.bot.sendMessage(chat_id=MYTLGID, text=f'Bot just booted up, price monitoring at: {dollars}$ ({eur}€)',)
         BTCUSD = truncate(dollars, -3)
 
     elif truncate(dollars, -3) > BTCUSD:
@@ -147,7 +146,6 @@ def ethWatch(context=None):
     dollars = float(json.loads(requests.get(f'{BINANCE}/api/v3/ticker/price?symbol=ETHBUSD').text)['price'])
 
     if ETHUSD == 0:
-        updater.bot.sendMessage(chat_id=MYTLGID, text=f'Bot just booted up, price monitoring ETH at: {dollars}$')
         ETHUSD = truncate(dollars, -2)
 
     elif truncate(dollars, -2) > ETHUSD:
@@ -163,7 +161,6 @@ def adaWatch(context=None):
     dollars = float(json.loads(requests.get(f'{BINANCE}/api/v3/ticker/price?symbol=ADABUSD').text)['price'])
 
     if ADAUSD == 0:
-        updater.bot.sendMessage(chat_id=MYTLGID, text=f'Bot just booted up, price monitoring ADA at: {dollars}$')
         ADAUSD = truncate(dollars, 1)
 
     elif truncate(dollars, 1) > ADAUSD:
@@ -192,7 +189,7 @@ def fearGreedBTC(context=None):
     except:
         updater.bot.sendMessage(chat_id=MYTLGID, text=f'𝅏Error with fear and greed indicator')
 
-def calcRiskMetric(context = None):
+def calcRiskMetric():
     global RiskMetricMessage
     currencies = ['usd', 'btc']
     coins = getSheetInfo()
@@ -231,11 +228,23 @@ def calcRiskMetric(context = None):
     setRiskInfo(risks)
     drawRisks(drawData)
     RiskMetricMessage = message
-    updater.bot.sendPhoto(chat_id=CRIPTOBOYS, photo=open("risks.png", "rb"))
+
+
+def riskMetricDaily():
+    calcRiskMetric()
+    global RiskMetricMessage
+    if path.exists('risks.png'):
+        updater.bot.sendPhoto(chat_id=CRIPTOBOYS, photo=open("risks.png", "rb"))
+    else:
+        updater.bot.sendMessage(chat_id=CRIPTOBOYS, text=RiskMetricMessage)
+
 
 def riskMetricCommand(update, context):
     global RiskMetricMessage
-    context.bot.sendMessage(chat_id=update.message.chat_id, text=RiskMetricMessage)
+    if path.exists('risks.png'):
+        context.bot.sendPhoto(chat_id=update.message.chat_id, photo=open("risks.png", "rb"))
+    else:
+        context.bot.sendMessage(chat_id=update.message.chat_id, text=RiskMetricMessage)
 
 def refreshSheetData(context = None):
     setCoinsInfo()
@@ -247,6 +256,9 @@ def initCredsFile():
     f.close()
 
 """Run the bot."""
+
+### Load env and global variables
+
 load_dotenv()
 
 BOTTOKEN = environ['BOTTOKEN']
@@ -260,14 +272,18 @@ BTCUSD = 0
 ETHUSD = 0
 ADAUSD = 0
 RiskMetricMessage = ""
-
 initCredsFile()
+
+### Start bot
 
 updater = Updater(token=BOTTOKEN, use_context=True)
 jobQ = updater.job_queue
 
 dp = updater.dispatcher
 logging.basicConfig(format='%(asctime)s - %(name)s - %(levelname)s - %(message)s', level=logging.INFO)
+
+### Handlers for commands
+
 dp.add_handler(CommandHandler('ip', getPublicIP))
 dp.add_handler(CommandHandler('bicing', myBicing))
 dp.add_handler(CommandHandler('btc', btcPrice))
@@ -278,17 +294,26 @@ dp.add_handler(CommandHandler('risk', riskMetricCommand))
 dp.add_handler(CommandHandler('fearandgreed', fearGreedAllBTC))
 dp.add_handler(MessageHandler(Filters.all, specialMessage))
 
+### Start functions for tracking crypto
+
 bitcoinWatch()
 ethWatch()
 adaWatch()
 calcRiskMetric()
 
+### Job queues for atomatic tasks
+
 jobQ.run_repeating(bitcoinWatch, 300)
 jobQ.run_repeating(ethWatch, 300)
 jobQ.run_repeating(adaWatch, 300)
 jobQ.run_daily(fearGreedBTC, datetime.time(hour=8))
-jobQ.run_daily(calcRiskMetric, datetime.time(hour=8))
+jobQ.run_daily(riskMetricDaily, datetime.time(hour=8))
 jobQ.run_repeating(refreshSheetData, 600)
+
+### Notify new boot
+
+updater.bot.sendMessage(chat_id=MYTLGID, text=f'Bot just booted up correctly')
+
 updater.start_polling()
 updater.idle()
 
