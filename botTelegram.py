@@ -192,6 +192,7 @@ def fearGreedBTC(context=None):
 
 def calcRiskMetric():
     global RiskMetricMessage
+    global riskUpdateTime
     currencies = ['usd', 'btc']
     coins = getSheetInfo()
     risks = []
@@ -226,26 +227,32 @@ def calcRiskMetric():
             drawData.update({coin: mData[0]})
         risks.append(coinData)
         i += 1
+    riskUpdateTime = time.localtime()
     setRiskInfo(risks)
     drawRisks(drawData)
     RiskMetricMessage = message
 
 
-def riskMetricDaily():
+def riskMetricDaily(context=None):
     calcRiskMetric()
-    global RiskMetricMessage
+
     if path.exists('risks.png'):
         updater.bot.sendPhoto(chat_id=CRIPTOBOYS, photo=open("risks.png", "rb"))
     else:
         updater.bot.sendMessage(chat_id=CRIPTOBOYS, text=RiskMetricMessage)
+    now = time.localtime()
+    if riskUpdateTime and riskUpdateTime[:3] == now[:3]:
+        updater.bot.sendMessage(chat_id=CRIPTOBOYS, text=f"Risk metric updated today at {now.tm_hour}:{now.tm_min}")
 
 
 def riskMetricCommand(update, context):
-    global RiskMetricMessage
     if path.exists('risks.png'):
         context.bot.sendPhoto(chat_id=update.message.chat_id, photo=open("risks.png", "rb"))
     else:
         context.bot.sendMessage(chat_id=update.message.chat_id, text=RiskMetricMessage)
+    now = time.localtime()
+    if riskUpdateTime[:3] == now[:3]:
+        updater.bot.sendMessage(chat_id=update.message.chat_id, text=f"Risk metric updated today at {now.tm_hour}:{now.tm_min}")
 
 def refreshSheetData(context = None):
     setCoinsInfo()
@@ -274,7 +281,7 @@ ETHUSD = 0
 ADAUSD = 0
 RiskMetricMessage = ""
 initCredsFile()
-
+riskUpdateTime = time.localtime()
 ### Start bot
 
 updater = Updater(token=BOTTOKEN, use_context=True)
