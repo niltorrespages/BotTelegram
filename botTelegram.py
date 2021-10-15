@@ -235,14 +235,19 @@ def calcRiskMetric():
 
 def riskMetricDaily(context=None):
     calcRiskMetric()
-
+    chat = CRIPTOBOYS
     if path.exists('risks.png'):
-        updater.bot.sendPhoto(chat_id=CRIPTOBOYS, photo=open("risks.png", "rb"))
+        updater.bot.sendPhoto(chat_id=chat, photo=open("risks.png", "rb"))
     else:
-        updater.bot.sendMessage(chat_id=CRIPTOBOYS, text=RiskMetricMessage)
+        updater.bot.sendMessage(chat_id=chat, text=RiskMetricMessage)
     now = time.localtime()
-    if riskUpdateTime and riskUpdateTime[:3] == now[:3]:
-        updater.bot.sendMessage(chat_id=CRIPTOBOYS, text=f"Risk metric updated today at {now.tm_hour}:{now.tm_min}")
+    if riskUpdateTime[:3] == now[:3]:
+        updater.bot.sendMessage(chat_id=chat,
+                                text=f"Risk metric updated today at {time.strftime('%H:%M',riskUpdateTime)}")
+    else:
+        updater.bot.sendMessage(chat_id=chat,
+                                text=f"Risk metric updated {time.strftime('%d/%m/%Y',riskUpdateTime)} at "
+                                     f"{time.strftime('%H:%M',riskUpdateTime)}")
 
 
 def riskMetricCommand(update, context):
@@ -252,7 +257,12 @@ def riskMetricCommand(update, context):
         context.bot.sendMessage(chat_id=update.message.chat_id, text=RiskMetricMessage)
     now = time.localtime()
     if riskUpdateTime[:3] == now[:3]:
-        updater.bot.sendMessage(chat_id=update.message.chat_id, text=f"Risk metric updated today at {now.tm_hour}:{now.tm_min}")
+        updater.bot.sendMessage(chat_id=update.message.chat_id,
+                                text=f"Risk metric updated today at {time.strftime('%H:%M',riskUpdateTime)}")
+    else:
+        updater.bot.sendMessage(chat_id=update.message.chat_id,
+                                text=f"Risk metric updated {time.strftime('%d/%m/%Y',riskUpdateTime)} at "
+                                     f"{time.strftime('%H:%M',riskUpdateTime)}")
 
 def refreshSheetData(context = None):
     setCoinsInfo()
@@ -279,9 +289,14 @@ BINANCE = "https://api.binance.com"
 BTCUSD = 0
 ETHUSD = 0
 ADAUSD = 0
+
 RiskMetricMessage = ""
 initCredsFile()
+
+environ['TZ'] = 'Europe/Madrid'
+time.tzset()
 riskUpdateTime = time.localtime()
+
 ### Start bot
 
 updater = Updater(token=BOTTOKEN, use_context=True)
