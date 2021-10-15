@@ -19,11 +19,20 @@ def setRiskInfo(risks):
     sheet_service = build('sheets', 'v4', credentials=credentials, cache_discovery=False)
     id = environ['SpreadsheetId']
     valueInputOption = 'USER_ENTERED'
-    range = 'Resum!G4:H12'
+    range = f'Resum!G4:H{len(risks)+4}'
     body = {
         'values': risks
     }
     data = sheet_service.spreadsheets().values().update(spreadsheetId=id, range=range, body=body, valueInputOption= valueInputOption).execute()
+
+def getTokensInfo(num):
+    credentials = service_account.Credentials.from_service_account_file("creds.json")
+    sheet_service = build('sheets', 'v4', credentials=credentials, cache_discovery=False)
+    id = environ['SpreadsheetId']
+    range = f'Resum!C4:C{num+4}'
+    data = sheet_service.spreadsheets().values().get(spreadsheetId=id, range=range).execute()
+    rows = data.get('values', [])
+    return rows
 
 def getAllCoinsInfo():
     credentials = service_account.Credentials.from_service_account_file("creds.json")

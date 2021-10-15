@@ -11,7 +11,7 @@ from geopy.distance import geodesic
 from os import environ, path
 from dotenv import load_dotenv
 import emoji
-from sheetsConnection import getSheetInfo, setRiskInfo, setCoinsInfo
+from sheetsConnection import getTokensInfo, setRiskInfo, setCoinsInfo, getAllCoinsInfo
 from risk import riskMetric
 from imgGen import drawRisks
 
@@ -194,12 +194,13 @@ def calcRiskMetric():
     global RiskMetricMessage
     global riskUpdateTime
     currencies = ['usd', 'btc']
-    coins = getSheetInfo()
+    coins = getAllCoinsInfo()
+    coins = coins[:coins.index(["EndMainCoins"])]
+    tokens = getTokensInfo(len(coins))
     risks = []
     drawData = {}
-    i = 0
     message = "Today risk metrics:"
-    for coin in coins:
+    for i, coin in enumerate(coins):
         coinData = []
         mData = []
         coin = "" if len(coin) == 0 else coin[0]
@@ -224,9 +225,9 @@ def calcRiskMetric():
                 mData = ["",""]
         if coin:
             message += f"\n{coin.capitalize()}: {mData[0]}% (usd) {mData[1]}% (btc)"
-            drawData.update({coin: mData[0]})
+            drawData.update({coin:
+                                 {'token': tokens[i][0], 'risk': mData[0]}})
         risks.append(coinData)
-        i += 1
     riskUpdateTime = time.localtime()
     setRiskInfo(risks)
     drawRisks(drawData)
