@@ -264,6 +264,8 @@ def riskMetricCommand(update, context):
         updater.bot.sendMessage(chat_id=update.message.chat_id,
                                 text=f"Risk metric updated {time.strftime('%d/%m/%Y',riskUpdateTime)} at "
                                      f"{time.strftime('%H:%M',riskUpdateTime)}")
+def riskMetricUpdate(update, context):
+    riskMetricDaily()
 
 def refreshSheetData(context = None):
     setCoinsInfo()
@@ -315,6 +317,7 @@ dp.add_handler(CommandHandler('eth', ethPrice))
 dp.add_handler(CommandHandler('ada', adaPrice))
 dp.add_handler(CommandHandler('doge', doge))
 dp.add_handler(CommandHandler('risk', riskMetricCommand))
+dp.add_handler(CommandHandler('riskupdate', riskMetricUpdate))
 dp.add_handler(CommandHandler('fearandgreed', fearGreedAllBTC))
 dp.add_handler(MessageHandler(Filters.all, specialMessage))
 
