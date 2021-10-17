@@ -19,7 +19,7 @@ def setRiskInfo(risks):
     sheet_service = build('sheets', 'v4', credentials=credentials, cache_discovery=False)
     id = environ['SpreadsheetId']
     valueInputOption = 'USER_ENTERED'
-    range = f'Resum!G4:H{len(risks)+4}'
+    range = f'Resum!H4:I{len(risks)+4}'
     body = {
         'values': risks
     }
