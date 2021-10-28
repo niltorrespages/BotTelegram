@@ -3,6 +3,7 @@ from googleapiclient.discovery import build
 from google.oauth2 import service_account
 from os import environ
 from pycoingecko import CoinGeckoAPI
+from datetime import date
 
 
 def getSheetInfo():
@@ -43,6 +44,38 @@ def getAllCoinsInfo():
     rows = data.get('values', [])
     return rows
 
+def setHistoryData():
+    credentials = service_account.Credentials.from_service_account_file("creds.json")
+    sheet_service = build('sheets', 'v4', credentials=credentials, cache_discovery=False)
+    id = environ['SpreadsheetId']
+    range = 'Resum!A:O'
+    data = sheet_service.spreadsheets().values().get(spreadsheetId=id, range=range).execute()
+    rows = data.get('values', [])
+    lastData = 0
+    for i, row in enumerate(reversed(rows)):
+        if row and row[0] == "Sold":
+            lastData = len(rows) - 1 - i
+    data = rows[:lastData]
+    badList = ['', 'Main Coins', 'Secondary Coins', 'Shit Coins', 'Stable coins', 'NFT', 'Active']
+    today = date.today()
+    newData = []
+    for j, row in enumerate(data):
+        if row[0] and row[0] not in badList:
+            newData.append([])
+            newData[len(newData) - 1].append(today.strftime("%d/%m/%Y"))
+            newData[len(newData) - 1].append(row[0])
+            price = float(row[13].replace('$','').replace('.','').replace(',','.'))
+            coin = float(row[14].replace('$','').replace('.','').replace(',','.'))
+            newData[len(newData) - 1].append(price)
+            newData[len(newData) - 1].append(coin)
+            newData[len(newData) - 1].append(coin * price)
+    newRange = 'History!A:E'
+    body = {
+        'values': newData
+    }
+    valueInputOption = 'USER_ENTERED'
+    sheet_service.spreadsheets().values().append(spreadsheetId=id, range=newRange, body=body, valueInputOption=valueInputOption).execute()
+
 def setCoinsInfo():
     cg = CoinGeckoAPI()
     coins = getAllCoinsInfo()
@@ -71,3 +104,7 @@ def setCoinsInfo():
         'values': info
     }
     sheet_service.spreadsheets().values().update(spreadsheetId=id, range=range, body=body, valueInputOption=valueInputOption).execute()
+
+from dotenv import load_dotenv
+load_dotenv()
+setHistoryData()

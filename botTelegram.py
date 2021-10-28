@@ -11,7 +11,7 @@ from geopy.distance import geodesic
 from os import environ, path
 from dotenv import load_dotenv
 import emoji
-from sheetsConnection import getTokensInfo, setRiskInfo, setCoinsInfo, getAllCoinsInfo
+from sheetsConnection import getTokensInfo, setRiskInfo, setCoinsInfo, getAllCoinsInfo, setHistoryData
 from risk import riskMetric
 from imgGen import drawRisks
 
@@ -270,6 +270,9 @@ def riskMetricUpdate(update, context):
 def refreshSheetData(context = None):
     setCoinsInfo()
 
+def setHistory(context = None):
+    setHistoryData()
+
 def initCredsFile():
     GOOGLEAPI = environ['GOOGLEAPI']
     f = open('creds.json', 'w')
@@ -335,6 +338,7 @@ jobQ.run_repeating(ethWatch, 300)
 jobQ.run_repeating(adaWatch, 300)
 jobQ.run_daily(fearGreedBTC, datetime.time(hour=8))
 jobQ.run_daily(riskMetricDaily, datetime.time(hour=8))
+jobQ.run_daily(setHistory, datetime.time(hour=11, minute=55))
 jobQ.run_repeating(refreshSheetData, 600)
 
 ### Notify new correct boot
