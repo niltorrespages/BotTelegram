@@ -104,7 +104,3 @@ def setCoinsInfo():
         'values': info
     }
     sheet_service.spreadsheets().values().update(spreadsheetId=id, range=range, body=body, valueInputOption=valueInputOption).execute()
-
-from dotenv import load_dotenv
-load_dotenv()
-setHistoryData()
