@@ -69,7 +69,7 @@ def setHistoryData():
             newData[len(newData) - 1].append(price)
             newData[len(newData) - 1].append(coin)
             newData[len(newData) - 1].append(coin * price)
-    newRange = 'History!A:E'
+    newRange = 'History!B:F'
     body = {
         'values': newData
     }
