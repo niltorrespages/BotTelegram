@@ -62,10 +62,12 @@ def setHistoryData():
     for j, row in enumerate(data):
         if row[0] and row[0] not in badList:
             newData.append([])
-            newData[len(newData) - 1].append(today.strftime("%d/%m/%Y"))
-            newData[len(newData) - 1].append(row[0])
             price = float(row[13].replace('$','').replace('.','').replace(',','.'))
             coin = float(row[14].replace('$','').replace('.','').replace(',','.'))
+            now = today.strftime("%d/%m/%Y")
+            newData[len(newData) - 1].append(now + " " + row[0])
+            newData[len(newData) - 1].append(now)
+            newData[len(newData) - 1].append(row[0])
             newData[len(newData) - 1].append(price)
             newData[len(newData) - 1].append(coin)
             newData[len(newData) - 1].append(coin * price)
