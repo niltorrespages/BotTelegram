@@ -60,7 +60,7 @@ def setHistoryData():
     today = date.today()
     newData = []
     for j, row in enumerate(data):
-        if row[0] and row[0] not in badList:
+        if row and row[0] and row[0] not in badList:
             newData.append([])
             price = float(row[13].replace('$','').replace('.','').replace(',','.'))
             coin = float(row[14].replace('$','').replace('.','').replace(',','.'))
