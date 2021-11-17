@@ -338,7 +338,7 @@ jobQ.run_repeating(ethWatch, 300)
 jobQ.run_repeating(adaWatch, 300)
 jobQ.run_daily(fearGreedBTC, datetime.time(hour=8))
 jobQ.run_daily(riskMetricDaily, datetime.time(hour=8))
-jobQ.run_daily(setHistory, datetime.time(hour=00, minute=5))
+jobQ.run_daily(setHistory, datetime.time(hour=23, minute=55))
 jobQ.run_repeating(refreshSheetData, 600)
 
 ### Notify new correct boot
