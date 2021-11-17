@@ -39,7 +39,7 @@ def getAllCoinsInfo():
     credentials = service_account.Credentials.from_service_account_file("creds.json")
     sheet_service = build('sheets', 'v4', credentials=credentials, cache_discovery=False)
     id = environ['SpreadsheetId']
-    range = 'Resum!B4:B22'
+    range = 'Resum!B4:B23'
     data = sheet_service.spreadsheets().values().get(spreadsheetId=id, range=range).execute()
     rows = data.get('values', [])
     return rows
