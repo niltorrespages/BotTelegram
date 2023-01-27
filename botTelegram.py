@@ -110,6 +110,11 @@ def adaPrice(update, context):
     dollars = float(json.loads(requests.get(f'{BINANCE}/api/v3/ticker/price?symbol=ADABUSD').text)['price'])
     eur = float(json.loads(requests.get(f'{BINANCE}/api/v3/ticker/price?symbol=ADAEUR').text)['price'])
     context.bot.sendMessage(chat_id=update.message.chat_id, text=f'Preu del ADA:  {dollars}$ ({eur}€)')
+
+def maticPrice(update, context):
+    dollars = float(json.loads(requests.get(f'{BINANCE}/api/v3/ticker/price?symbol=MATICBUSD').text)['price'])
+    eur = float(json.loads(requests.get(f'{BINANCE}/api/v3/ticker/price?symbol=MATICEUR').text)['price'])
+    context.bot.sendMessage(chat_id=update.message.chat_id, text=f'Preu del MATIC:  {dollars}$ ({eur}€)')
                                 
 def bitcoinWatch(context=None):
     global BTCUSD
@@ -125,6 +130,7 @@ def bitcoinWatch(context=None):
     elif truncate(dollars, -3) < BTCUSD:
         updater.bot.sendMessage(chat_id=MYTLGID, text=f'₿ BTC Down! {dollars}$ ({eur}€)')
         BTCUSD = truncate(dollars, -3)
+    notionUpdate(pages['BTC'], dollars)
 
 
 def ethWatch(context=None):
@@ -141,6 +147,7 @@ def ethWatch(context=None):
     elif truncate(dollars, -2) < ETHUSD:
         updater.bot.sendMessage(chat_id=MYTLGID, text=f'𝅏 ETH Down! {dollars}$')
         ETHUSD = truncate(dollars, -2)
+    notionUpdate(pages['ETH'], dollars)
                                               
 def adaWatch(context=None):
     global ADAUSD
@@ -156,6 +163,41 @@ def adaWatch(context=None):
     elif truncate(dollars, 2) < ADAUSD:
         updater.bot.sendMessage(chat_id=MYTLGID, text=f'𝅏 ADA Down! {dollars}$')
         ADAUSD = truncate(dollars, 1)
+    notionUpdate(pages['Ada'], dollars)
+
+def polyWatch(context=None):
+    global MATICUSD
+    dollars = float(json.loads(requests.get(f'{BINANCE}/api/v3/ticker/price?symbol=MATICBUSD').text)['price'])
+
+    if MATICUSD == 0:
+        MATICUSD = truncate(dollars, 1)
+
+    elif truncate(dollars, 1) > MATICUSD:
+        updater.bot.sendMessage(chat_id=MYTLGID, text=f'𝅉 MATIC Up! {dollars}$')
+        MATICUSD = truncate(dollars, 1)
+
+    elif truncate(dollars, 2) < MATICUSD:
+        updater.bot.sendMessage(chat_id=MYTLGID, text=f'𝅏 MATIC Down! {dollars}$')
+        MATICUSD = truncate(dollars, 1)
+
+    notionUpdate(pages['Matic'], dollars)
+
+def notionUpdate(id, price):
+
+    data = json.dumps({"properties": {"Price": price}})
+    requests.patch(f"https://api.notion.com/v1/pages/{id}", headers=headers, data=data)
+
+
+def notionPages():
+    pages = {}
+    r = requests.post("https://api.notion.com/v1/search", headers=headers)
+    data = json.loads(r.text)
+    for p in data['results']:
+        try:
+            pages.update({p["properties"]['Name']['title'][0]['plain_text']:p["id"]})
+        except:
+            pass
+    return pages
 
 """Run the bot."""
 
@@ -166,11 +208,17 @@ BOTTOKEN = environ['BOTTOKEN']
 MYTLGID = int(environ['MYTLGID'])
 HOME =(float(environ['HOMELAT']), float(environ['HOMELONG']))
 
+# Setup Notion
+NOTION = environ['NOTION']
+headers = {"Notion-Version": "2022-06-28", "Authorization": f"Bearer {NOTION}", "Content-Type": "application/json"}
+pages = notionPages()
+
 BINANCE = "https://api.binance.com"
 
 BTCUSD = 0
 ETHUSD = 0
 ADAUSD = 0
+MATICUSD = 0
 
 
 environ['TZ'] = 'Europe/Madrid'
@@ -190,6 +238,7 @@ dp.add_handler(CommandHandler('bicing', myBicing))
 dp.add_handler(CommandHandler('btc', btcPrice))
 dp.add_handler(CommandHandler('eth', ethPrice))
 dp.add_handler(CommandHandler('ada', adaPrice))
+dp.add_handler(CommandHandler('matic', maticPrice))
 dp.add_handler(MessageHandler(Filters.all, specialMessage))
 
 ### Start functions for tracking crypto
@@ -197,12 +246,14 @@ dp.add_handler(MessageHandler(Filters.all, specialMessage))
 bitcoinWatch()
 ethWatch()
 adaWatch()
+polyWatch()
 
 ### Job queues for atomatic tasks
 
 jobQ.run_repeating(bitcoinWatch, 300)
 jobQ.run_repeating(ethWatch, 300)
 jobQ.run_repeating(adaWatch, 300)
+jobQ.run_repeating(polyWatch, 300)
 
 ### Notify new correct boot
 
