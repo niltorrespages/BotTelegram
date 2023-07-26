@@ -7,6 +7,7 @@ import time
 import requests
 from geopy.distance import geodesic
 from os import environ
+import socket
 
 class Station(object):
 
@@ -23,7 +24,6 @@ class Station(object):
         return(f'{self.name}: {self.lat} {self.long} a {self.distance} metres')
 
 def fetchBicing(location):
-    myLocation = location
     si = json.loads(requests.get('https://api.bsmsa.eu/ext/api/bsm/gbfs/v2/en/station_information').content)
     ss = json.loads(requests.get('https://api.bsmsa.eu/ext/api/bsm/gbfs/v2/en/station_status').content)['data'][
         'stations']
@@ -31,7 +31,7 @@ def fetchBicing(location):
     stations = []
     for station in si['data']['stations']:
         stLocation = (station['lat'], station['lon'])
-        dist = geodesic(myLocation, stLocation).meters
+        dist = geodesic(location, stLocation).meters
         s = Station(station['name'], station['lat'], station['lon'], dist)
         s.status = ss[id]['status']
         s.mech = int(ss[id]['num_bikes_available_types']['mechanical'])
@@ -63,19 +63,6 @@ def myBicing(update, context):
 
 def specialMessage(update, context):
 
-    # if update.message.new_chat_photo:
-    #     message = context.bot.sendPoll(chat_id=update.message.chat_id, question="FoC", options=['F', 'C'], is_anonymous=False)
-    # if update.message.chat.type in ['supergroup', 'group']:
-    #     if update.message.text:
-    #         if 'engrescat' in update.message.text.lower():
-    #             message = context.bot.sendAnimation(chat_id=update.message.chat_id, animation='https://media2.giphy.com/media/U5UieHLUiMpisOzAe5/giphy.gif')
-    #         if 'suu' in update.message.text.lower():
-    #             message = context.bot.sendAnimation(chat_id=update.message.chat_id, animation='https://media3.giphy.com/media/NxIAnAN4yHhj806YS0/giphy.gif')
-    #         if 'llaminer' in update.message.text.lower():
-    #             message = context.bot.sendAnimation(chat_id=update.message.chat_id, animation='https://j.gifs.com/MwM8m1.gif')
-    #         if 'to the moon' in update.message.text.lower():
-    #             message = context.bot.sendMessage(chat_id=update.message.chat_id, text=f'{emoji.emojize(":rocket::rocket::rocket:", use_aliases=True)}')
-                                
     if update.message.location:
         myLocation = (update.message['location']['latitude'], update.message['location']['longitude'])
         try:
@@ -199,6 +186,40 @@ def notionPages():
             pass
     return pages
 
+def checkWebsite(context):
+    global webUp
+    try:
+        code = int(requests.get(context.job.context, verify=False).status_code)
+        if code != 200 and webUp:
+            if dnsCheck():
+                message = f'Error a {context.job.context} amb codi {code}'
+
+            else:
+                message = f'Error, resolució DNS i IP publica no son la mateixa IP'
+
+            updater.bot.sendMessage(chat_id=MYTLGID, text=message, disable_web_page_preview=True)
+            webUp = False
+        elif code == 200 and not webUp:
+            updater.bot.sendMessage(chat_id=MYTLGID,
+                                    text=f'{context.job.context} torna a estar operativa',
+                                    disable_web_page_preview=True)
+            webUp = True
+    except:
+        if webUp:
+            if dnsCheck():
+                message = f'Error a {context.job.context} sense codi (TimeOut)'
+
+            else:
+                message = f'Error, resolució DNS i IP publica no son la mateixa IP'
+
+            updater.bot.sendMessage(chat_id=MYTLGID, text=message, disable_web_page_preview=True)
+            webUp = False
+
+def dnsCheck():
+    myIP = requests.get('https://checkip.amazonaws.com').text.strip()
+    dnsIP = socket.getaddrinfo('niltorres.xyz', 443)[0][4]
+    return dnsIP == myIP
+
 """Run the bot."""
 
 ### Load env and global variables
@@ -254,6 +275,10 @@ jobQ.run_repeating(bitcoinWatch, 300)
 jobQ.run_repeating(ethWatch, 300)
 jobQ.run_repeating(adaWatch, 300)
 jobQ.run_repeating(polyWatch, 300)
+
+### Webiste monitor
+webUp = True
+jobQ.run_repeating(callback=checkWebsite, context="https://niltorres.xyz", interval=300)
 
 ### Notify new correct boot
 
